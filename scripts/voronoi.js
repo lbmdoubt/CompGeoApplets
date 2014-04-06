@@ -7,7 +7,8 @@ $(document).ready(function(){
     canvas = document.getElementById('voronoiCanvas');
     canvas.addEventListener('click', function(){ addPoint('voronoiCanvas')}, false);
     canvas.addEventListener('mousemove', function(e) {
-        pos = getCanvasPos(e); /// provide this canvas and event
+        pos = getCanvasPos(e);
+        redraw();
     }, false);
     //fix the canvas scaling problems
     canvas.height = canvas.getContext("2d").canvas.clientHeight;
@@ -21,7 +22,17 @@ function getCanvasPos(e){
 
 function addPoint()
 {
-    points[points.length] = pos;
+    var index = -1;
+    for(i = 0; i < points.length; i++){
+        if(Math.abs(points[i].x - pos.x) <= 3 && Math.abs(points[i].y - pos.y) <= 3){
+            index = i;
+        }
+    }
+    if(index < 0){
+        points[points.length] = pos;
+    } else {
+        points.splice(index, 1);
+    }
     redraw();
 }
 
@@ -32,7 +43,11 @@ function redraw()
     ctx.save();
     ctx.fillStyle="#000000";
     for(i = 0; i < points.length; i++){
-        ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
+        if(Math.abs(points[i].x - pos.x) <= 3 && Math.abs(points[i].y - pos.y) <= 3){
+            ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
+        } else {
+            ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
+        }
     }
     ctx.restore();
 }
