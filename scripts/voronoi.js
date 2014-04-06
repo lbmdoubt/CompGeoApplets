@@ -1,13 +1,17 @@
 var pos;
 var points = new Array();
 var canvas;
+var startTime = -1;
+var selectedPointIndex = -1;
 
 $(document).ready(function(){
     //set up action listeners
     canvas = document.getElementById('voronoiCanvas');
-    canvas.addEventListener('click', function(){ addPoint('voronoiCanvas')}, false);
+    canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
+    canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
     canvas.addEventListener('mousemove', function(e) {
         pos = getCanvasPos(e);
+        mouseMove();
         redraw();
     }, false);
     //fix the canvas scaling problems
@@ -20,31 +24,72 @@ function getCanvasPos(e){
     return {x: e.clientX - rect.left, y: e.clientY - rect.top};
 }
 
-function addPoint()
-{
-    var index = -1;
+function mouseDown(){
+    startTime = new Date().getTime();
+    selectedPointIndex = -1;
     for(i = 0; i < points.length; i++){
-        if(Math.abs(points[i].x - pos.x) <= 3 && Math.abs(points[i].y - pos.y) <= 3){
-            index = i;
+        if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
+            selectedPointIndex = i;
         }
     }
-    if(index < 0){
+}
+
+function mouseUp(){
+    addPoint();
+    startTime = -1;
+    selectedPointIndex = -1;
+}
+
+function addPoint()
+{
+    if(selectedPointIndex < 0){
         points[points.length] = pos;
     } else {
-        points.splice(index, 1);
+        endTime = new Date().getTime();
+        if(startTime > 0){
+            if(endTime - startTime < 250){
+                points.splice(selectedPointIndex, 1);
+            }
+        }
+    }
+    //remove duplicate points
+    var selectedPoint = selectedPointIndex;
+    if(selectedPoint < 0){
+        //ignore newly added point
+        selectedPoint = points.length - 1
+    }
+    for(i = points.length - 1; i >= 0; i--){
+        if(i != selectedPoint && Math.abs(points[i].x - pos.x) <= 8 && Math.abs(points[i].y - pos.y) <= 8){
+                points.splice(i, 1);
+        }
     }
     redraw();
+}
+
+function mouseMove(){
+    endTime = new Date().getTime();
+    if(startTime > 0){
+        movePoint();
+    }
+}
+
+function movePoint(){
+    if(selectedPointIndex >= 0){
+        points[selectedPointIndex] = pos;
+    }
 }
 
 function redraw()
 {
     var ctx=canvas.getContext("2d");
-    clearCanvas();
     ctx.save();
+    clearCanvas();
     ctx.fillStyle="#000000";
     for(i = 0; i < points.length; i++){
-        if(Math.abs(points[i].x - pos.x) <= 3 && Math.abs(points[i].y - pos.y) <= 3){
-            ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
+        if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
+            if(selectedPointIndex < 0 || i == selectedPointIndex){
+                ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
+            }
         } else {
             ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
         }
