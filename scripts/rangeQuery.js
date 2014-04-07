@@ -1,12 +1,15 @@
 $(document).ready(function(){
     var pos;
     var points = new Array();
-    var canvas;
+    var canvas, xCanvas, yCanvas;
     var startTime = -1;
     var selectedPointIndex = -1;
 
     //set up action listeners
-    canvas = document.getElementById('voronoiCanvas');
+    canvas = document.getElementById('rangeQueryCanvas');
+    xCanvas = document.getElementById('xTreeCanvas');
+    yCanvas = document.getElementById('yTreeCanvas');
+    console.log("elements retrieved");
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
     canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
     canvas.addEventListener('mousemove', function(e) {
@@ -17,8 +20,11 @@ $(document).ready(function(){
     //fix the canvas scaling problems
     canvas.height = canvas.getContext("2d").canvas.clientHeight;
     canvas.width = canvas.getContext("2d").canvas.clientWidth;
-    
-    
+    xCanvas.height = xCanvas.getContext("2d").canvas.clientHeight;
+    xCanvas.width = xCanvas.getContext("2d").canvas.clientWidth;
+    yCanvas.height = yCanvas.getContext("2d").canvas.clientHeight;
+    yCanvas.width = yCanvas.getContext("2d").canvas.clientWidth;
+
     function getCanvasPos(e){
         var rect = canvas.getBoundingClientRect();
         return {x: e.clientX - rect.left, y: e.clientY - rect.top};
@@ -108,5 +114,5 @@ $(document).ready(function(){
         var ctx=canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
+    
 });
-

@@ -1,3 +1,9 @@
+table,tr,td
+{
+    margin:0px;
+    padding:0px;
+    border-spacing:1px;
+}
 canvas
 {
     width:800px;
@@ -5,4 +11,14 @@ canvas
     border-width:1px ;
     border-style:solid;
     border-color:#c3c3c3;
+}
+#rangeQueryCanvas
+{
+    width:398px;
+    height:598px;
+}
+#xTreeCanvas,#yTreeCanvas
+{
+    width:398px;
+    height:297px;
 }

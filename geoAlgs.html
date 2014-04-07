@@ -11,6 +11,7 @@
     <ul class="tabs">
       <li><a href="#first">Voronoi/Delaunay</a></li>
       <li><a href="#second">Dual</a></li>
+      <li><a href="#third">Range Query</a></li>
     </ul>
 
     <div class="panes">
@@ -22,6 +23,37 @@
             <button id="voronoiClear" type="button" onclick="clearVoronoiCanvas()">Clear</button>
         </div>
         <div>
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <td>
+                        <canvas id="rangeQueryCanvas" class="canvas">
+                            Your browser does not support the HTML5 canvas tag.
+                        </canvas>
+                    </td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>
+                                    <canvas id="xTreeCanvas" class="canvas">
+                                        Your browser does not support the HTML5 canvas tag.
+                                    </canvas>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <canvas id="yTreeCanvas" class="canvas">
+                                        Your browser does not support the HTML5 canvas tag.
+                                    </canvas>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <br/>
+            <button id="voronoiClear" type="button" onclick="clearVoronoiCanvas()">Clear</button>
         </div>
     </div>
 </body>
