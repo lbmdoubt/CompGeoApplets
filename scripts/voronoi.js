@@ -7,6 +7,8 @@ $(document).ready(function(){
 
     //set up action listeners
     canvas = document.getElementById('voronoiCanvas');
+	var clearButton = document.getElementById('voronoiClear');
+	clearButton.onclick=function(){clearVoronoiCanvas()};
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
     canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
     canvas.addEventListener('mousemove', function(e) {
@@ -14,9 +16,6 @@ $(document).ready(function(){
         mouseMove();
         redraw();
     }, false);
-    //fix the canvas scaling problems
-    canvas.height = canvas.getContext("2d").canvas.clientHeight;
-    canvas.width = canvas.getContext("2d").canvas.clientWidth;
     
     
     function getCanvasPos(e){
@@ -81,6 +80,7 @@ $(document).ready(function(){
 
     function redraw()
     {
+		fixScale();
         var ctx=canvas.getContext("2d");
         ctx.save();
         clearCanvas();
@@ -97,6 +97,12 @@ $(document).ready(function(){
         ctx.restore();
     }
 
+	function fixScale(){
+		//fix the canvas scaling problems
+		canvas.height = canvas.getContext("2d").canvas.clientHeight;
+		canvas.width = canvas.getContext("2d").canvas.clientWidth;
+	}
+	
     function clearVoronoiCanvas(){
         points = new Array();
         redraw();

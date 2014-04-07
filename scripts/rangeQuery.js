@@ -9,6 +9,8 @@ $(document).ready(function(){
     canvas = document.getElementById('rangeQueryCanvas');
     xCanvas = document.getElementById('xTreeCanvas');
     yCanvas = document.getElementById('yTreeCanvas');
+	var clearButton = document.getElementById('rangeQueryClear');
+	clearButton.onclick=function(){clearRangeQueryCanvas()};
     console.log("elements retrieved");
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
     canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
@@ -17,13 +19,6 @@ $(document).ready(function(){
         mouseMove();
         redraw();
     }, false);
-    //fix the canvas scaling problems
-    canvas.height = canvas.getContext("2d").canvas.clientHeight;
-    canvas.width = canvas.getContext("2d").canvas.clientWidth;
-    xCanvas.height = xCanvas.getContext("2d").canvas.clientHeight;
-    xCanvas.width = xCanvas.getContext("2d").canvas.clientWidth;
-    yCanvas.height = yCanvas.getContext("2d").canvas.clientHeight;
-    yCanvas.width = yCanvas.getContext("2d").canvas.clientWidth;
 
     function getCanvasPos(e){
         var rect = canvas.getBoundingClientRect();
@@ -87,6 +82,7 @@ $(document).ready(function(){
 
     function redraw()
     {
+		fixScale();
         var ctx=canvas.getContext("2d");
         ctx.save();
         clearCanvas();
@@ -103,7 +99,16 @@ $(document).ready(function(){
         ctx.restore();
     }
 
-    function clearVoronoiCanvas(){
+	function fixScale(){
+		canvas.height = canvas.getContext("2d").canvas.clientHeight;
+		canvas.width = canvas.getContext("2d").canvas.clientWidth;
+		xCanvas.height = xCanvas.getContext("2d").canvas.clientHeight;
+		xCanvas.width = xCanvas.getContext("2d").canvas.clientWidth;
+		yCanvas.height = yCanvas.getContext("2d").canvas.clientHeight;
+		yCanvas.width = yCanvas.getContext("2d").canvas.clientWidth;
+	}
+	
+    function clearRangeQueryCanvas(){
         points = new Array();
         redraw();
     }
