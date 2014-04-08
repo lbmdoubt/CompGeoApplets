@@ -10,6 +10,8 @@ $(document).ready(function(){
 	var yTree = new Array();
     var selectRect = null;
     var isMouseDown = false;
+	var xRangeLeft = -1;
+	var xRangeRight = -1;
 
     //set up action listeners
     canvas = document.getElementById('rangeQueryCanvas');
@@ -121,6 +123,7 @@ $(document).ready(function(){
     function movePoint(){
         if(selectedPointIndex >= 0 && canvasPos != null){
             points[selectedPointIndex] = canvasPos;
+			constructXTree();
         }
     }
 
@@ -148,6 +151,20 @@ $(document).ready(function(){
             ctx.strokeStyle = "#000000";
         }
         
+		if(xRangeLeft >= 0 && xRangeRight >= 0 && xRangeRight >= xRangeLeft){
+			xRangeRight = Math.min(xRangeRight + 1, canvas.width);
+			ctx.strokeStyle = "#00FF00";
+			ctx.fillStyle = "#00FF00";
+			ctx.globalAlpha = 0.2;
+			ctx.fillRect(xRangeLeft, 0, xRangeRight - xRangeLeft, canvas.height);
+			ctx.globalAlpha = 1.0;
+			ctx.moveTo(xRangeLeft,0);
+			ctx.lineTo(xRangeLeft,canvas.height);
+			ctx.moveTo(xRangeRight,0);
+			ctx.lineTo(xRangeRight,canvas.height);
+			ctx.stroke();
+		}
+		
         for(i = 0; i < points.length; i++){
 			ctx.fillStyle = points[i].color;
             if(highlightedPointIndex == i){
@@ -202,6 +219,8 @@ $(document).ready(function(){
 		
 		if(xTree.length > 0){
 			xTree[0].color="#222222";
+			xRangeLeft = -1;
+			xRangeRight = -1;
 			for(i=0; i < xTree.length; i++){
 				if(xTree[i].isLeaf && xTree[i].refPoint == highlightedPointIndex){
 					xTree[i].color="#FF0000";
@@ -210,6 +229,15 @@ $(document).ready(function(){
 					if(!xTree[i].isLeaf){
 						xTree[xTree[i].leftChild].color = xTree[i].color;
 						xTree[xTree[i].rightChild].color = xTree[i].color;
+						var leftDesc = xTree[i], rightDesc = xTree[i];
+						while(!leftDesc.isLeaf){
+							leftDesc = xTree[leftDesc.leftChild];
+						}
+						while(!rightDesc.isLeaf){
+							rightDesc = xTree[rightDesc.rightChild];
+						}
+						xRangeLeft = points[leftDesc.refPoint].x;
+						xRangeRight = points[rightDesc.refPoint].x;
 					} else {
 						points[xTree[i].refPoint].color = xTree[i].color;
 					}
@@ -301,6 +329,9 @@ $(document).ready(function(){
 		}
 		
 		
+	}
+	
+	function constructYTree(xRootNode){
 	}
 	
 	function constructTreeSub(sortedPoints, startIndex, endIndex)
