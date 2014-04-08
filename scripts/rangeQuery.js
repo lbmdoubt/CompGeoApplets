@@ -1,5 +1,5 @@
 $(document).ready(function(){
-    var pos;
+    var canvasPos, xCanvasPos, yCanvasPos;
     var points = new Array();
     var canvas, xCanvas, yCanvas;
     var startTime = -1;
@@ -21,13 +21,30 @@ $(document).ready(function(){
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
     canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
     canvas.addEventListener('mousemove', function(e) {
-        pos = getCanvasPos(e);
+        canvasPos = getCanvasPos(e, 'rangeQueryCanvas');
+		xCanvasPos = null;
+		yCanvasPos = null;
+        mouseMove();
+        redraw();
+    }, false);
+    xCanvas.addEventListener('mousemove', function(e) {
+        xCanvasPos = getCanvasPos(e, 'xTreeCanvas');
+		canvasPos = null;
+		yCanvasPos = null;
+        mouseMove();
+        redraw();
+    }, false);
+    yCanvas.addEventListener('mousemove', function(e) {
+        yCanvasPos = getCanvasPos(e, 'yTreeCanvas');
+		canvasPos = null;
+		xCanvasPos = null;
         mouseMove();
         redraw();
     }, false);
 
-    function getCanvasPos(e){
-        var rect = canvas.getBoundingClientRect();
+    function getCanvasPos(e, canvasId){
+		var c = document.getElementById(canvasId);
+        var rect = c.getBoundingClientRect();
         return {x: e.clientX - rect.left, y: e.clientY - rect.top};
     }
 
@@ -35,14 +52,16 @@ $(document).ready(function(){
         isMouseDown = true;
         startTime = new Date().getTime();
         selectedPointIndex = -1;
-        for(i = 0; i < points.length; i++){
-            if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
-                selectedPointIndex = i;
-            }
-        }
-        if(selectedPointIndex < 0){
-            selectRect = {x1:pos.x, y1:pos.y, x2:pos.x, y2:pos.y};
-        }
+		if(canvasPos != null){
+			for(i = 0; i < points.length; i++){
+				if(Math.abs(points[i].x - canvasPos.x) <= 4 && Math.abs(points[i].y - canvasPos.y) <= 4){
+					selectedPointIndex = i;
+				}
+			}
+			if(selectedPointIndex < 0){
+				selectRect = {x1:canvasPos.x, y1:canvasPos.y, x2:canvasPos.x, y2:canvasPos.y};
+			}
+		}
     }
 
     function mouseUp(){
@@ -54,12 +73,15 @@ $(document).ready(function(){
 
     function addPoint()
     {
-		if(points.length > maxPoints){
+		if(canvasPos == null){
 			return;
 		}
         endTime = new Date().getTime();
         if(selectedPointIndex < 0 && endTime - startTime < 200){
-            points[points.length] = pos;
+			if(points.length > maxPoints){
+				return;
+			}
+            points[points.length] = canvasPos;
         } else {
             endTime = new Date().getTime();
             if(startTime > 0){
@@ -76,7 +98,7 @@ $(document).ready(function(){
                 selectedPoint = points.length - 1
             }
             for(i = points.length - 1; i >= 0; i--){
-                if(i != selectedPoint && Math.abs(points[i].x - pos.x) <= 8 && Math.abs(points[i].y - pos.y) <= 8){
+                if(i != selectedPoint && Math.abs(points[i].x - canvasPos.x) <= 8 && Math.abs(points[i].y - canvasPos.y) <= 8){
                         points.splice(i, 1);
                 }
             }
@@ -90,15 +112,15 @@ $(document).ready(function(){
         if(startTime > 0){
             movePoint();
         }
-        if(selectedPointIndex < 0 && selectRect != null && isMouseDown && endTime - startTime > 200){
-            selectRect.y2 = pos.y;
-            selectRect.x2 = pos.x;
+        if(canvasPos != null && selectedPointIndex < 0 && selectRect != null && isMouseDown && endTime - startTime > 200){
+            selectRect.y2 = canvasPos.y;
+            selectRect.x2 = canvasPos.x;
         }
     }
 
     function movePoint(){
-        if(selectedPointIndex >= 0){
-            points[selectedPointIndex] = pos;
+        if(selectedPointIndex >= 0 && canvasPos != null){
+            points[selectedPointIndex] = canvasPos;
         }
     }
 
@@ -109,6 +131,8 @@ $(document).ready(function(){
         var ctx=canvas.getContext("2d");
         ctx.save();
         
+		calcHoverColors();
+		
         if(selectRect != null){
             var x = Math.min(selectRect.x1, selectRect.x2);
             var y = Math.min(selectRect.y1, selectRect.y2);
@@ -124,16 +148,11 @@ $(document).ready(function(){
             ctx.strokeStyle = "#000000";
         }
         
-        highlightedPointIndex = -1;
         for(i = 0; i < points.length; i++){
-            if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
-                if(selectedPointIndex < 0 || i == selectedPointIndex){
-					ctx.fillStyle="#FF0000";
-                    ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
-                    highlightedPointIndex = i;
-                }
+			ctx.fillStyle = points[i].color;
+            if(highlightedPointIndex == i){
+				ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
             } else {
-				ctx.fillStyle="#000000";
                 ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
             }
         }
@@ -170,46 +189,63 @@ $(document).ready(function(){
         ctx.clearRect(0, 0, yCanvas.width, yCanvas.height);
     }
 	
+	function calcHoverColors(){
+		highlightedPointIndex = -1;
+        for(i = 0; i < points.length; i++){
+            if(canvasPos != null && Math.abs(points[i].x - canvasPos.x) <= 4 && Math.abs(points[i].y - canvasPos.y) <= 4){
+				points[i].color="#FF0000";
+				highlightedPointIndex = i;
+            } else {
+				points[i].color="#000000";
+            }
+        }
+		
+		if(xTree.length > 0){
+			xTree[0].color="#222222";
+			for(i=0; i < xTree.length; i++){
+				if(xTree[i].isLeaf && xTree[i].refPoint == highlightedPointIndex){
+					xTree[i].color="#FF0000";
+				} else if(xCanvasPos != null && Math.abs(xTree[i].x - xCanvasPos.x) < 6 && Math.abs(xTree[i].y - xCanvasPos.y) < 6){
+					xTree[i].color = "#FF0000";
+					if(!xTree[i].isLeaf){
+						xTree[xTree[i].leftChild].color = xTree[i].color;
+						xTree[xTree[i].rightChild].color = xTree[i].color;
+					} else {
+						points[xTree[i].refPoint].color = xTree[i].color;
+					}
+				} else {
+					if(!xTree[i].isLeaf){
+						xTree[xTree[i].leftChild].color = xTree[i].color;
+						xTree[xTree[i].rightChild].color = xTree[i].color;
+					} else {
+						points[xTree[i].refPoint].color = xTree[i].color;
+					}
+				}
+			}
+		}
+	}
+	
 	function drawXTree(){
 		if(xTree.length <= 0){
 			return;
 		}
 		var xCtx=xCanvas.getContext("2d");
 		xCtx.save();
-		
-		width = xCanvas.width;
-		
-		xTree[0].x = width / 2;
-		xTree[0].y = 25;
-		
-		if(xTree[0].isLeaf){
-			xCtx.arc(xTree[0].x,xTree[0].y,5,0,2*Math.PI);
-		} else {
-			xCtx.rect(xTree[0].x - 5, xTree[0].y - 5, 10, 10);
-		}
 		 
 		
 		for(i=0; i < xTree.length; i++){
             xCtx.beginPath();
             if(xTree[i].isLeaf && xTree[i].refPoint == highlightedPointIndex){
-				xCtx.strokeStyle="#FF0000";
+				xCtx.strokeStyle=xTree[i].color;
+            } else if(xCanvasPos != null && Math.abs(xTree[i].x - xCanvasPos.x) < 6 && Math.abs(xTree[i].y - xCanvasPos.y) < 6){
+				xCtx.strokeStyle=xTree[i].color;
             } else {
-				xCtx.strokeStyle="#222222";
-            }
+				xCtx.strokeStyle=xTree[i].color;
+			}
 			if(xTree[i].isLeaf){
                 xCtx.arc(xTree[i].x,xTree[i].y,5,0,2*Math.PI);
             } else {
                 xCtx.rect(xTree[i].x - 5, xTree[i].y - 5, 10, 10);
-                
-                //calculate positions of children
-                var xChange = xTree[i].rightChild - xTree[i].leftChild;
-                //left child
-                xTree[xTree[i].leftChild].y = xTree[i].y + 20;
-                xTree[xTree[i].leftChild].x = xTree[i].x - xChange * 10;
-                
-                //right child
-                xTree[xTree[i].rightChild].y = xTree[i].y + 20;
-                xTree[xTree[i].rightChild].x = xTree[i].x + xChange * 10;
             }
             xCtx.stroke();
 		}
@@ -245,6 +281,26 @@ $(document).ready(function(){
 				xTree[i].parent = i + xTree[i].parent;
 			}
 		}
+		
+		width = xCanvas.width;
+		
+		xTree[0].x = width / 2;
+		xTree[0].y = 25;
+		for(i=0; i < xTree.length; i++){
+			if(!xTree[i].isLeaf){
+                //calculate positions of children
+                var xChange = xTree[i].rightChild - xTree[i].leftChild;
+                //left child
+                xTree[xTree[i].leftChild].y = xTree[i].y + 20;
+                xTree[xTree[i].leftChild].x = xTree[i].x - xChange * 10;
+                
+                //right child
+                xTree[xTree[i].rightChild].y = xTree[i].y + 20;
+                xTree[xTree[i].rightChild].x = xTree[i].x + xChange * 10;
+            }
+		}
+		
+		
 	}
 	
 	function constructTreeSub(sortedPoints, startIndex, endIndex)
