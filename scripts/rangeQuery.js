@@ -152,7 +152,7 @@ $(document).ready(function(){
 		} else {
 			xCtx.rect(xTree[0].x - 5, xTree[0].y - 5, 10, 10);
 		}
-		
+		 
 		xCtx.stroke();
 		
 		for(i=1; i < xTree.length; i++){
