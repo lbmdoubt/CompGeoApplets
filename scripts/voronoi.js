@@ -4,6 +4,7 @@ $(document).ready(function(){
     var canvas;
     var startTime = -1;
     var selectedPointIndex = -1;
+	var maxPoints = 200;
 
     //set up action listeners
     canvas = document.getElementById('voronoiCanvas');
@@ -42,7 +43,9 @@ $(document).ready(function(){
     function addPoint()
     {
         if(selectedPointIndex < 0){
-            points[points.length] = pos;
+			if(points.length < maxPoints){
+				points[points.length] = pos;
+			}
         } else {
             endTime = new Date().getTime();
             if(startTime > 0){
@@ -84,13 +87,14 @@ $(document).ready(function(){
         var ctx=canvas.getContext("2d");
         ctx.save();
         clearCanvas();
-        ctx.fillStyle="#000000";
         for(i = 0; i < points.length; i++){
             if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
                 if(selectedPointIndex < 0 || i == selectedPointIndex){
+					ctx.fillStyle="#FF0000";
                     ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
                 }
             } else {
+				ctx.fillStyle="#000000";
                 ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
             }
         }
