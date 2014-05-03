@@ -15,6 +15,13 @@ $(document).ready(function(){
 	var xRangeRight = -1;
     var xOffset = 0;
     var yOffset = 0;
+    
+    //get images to draw
+    var redRect10px = document.getElementById("rect_red_10px");
+    var greenRect10px = document.getElementById("rect_green_10px");
+    var whiteRect10px = document.getElementById("rect_white_10px");
+    var redCirc10px = document.getElementById("circ_red_10px");
+    var whiteCirc10px = document.getElementById("circ_white_10px");
 
     //set up action listeners
     canvas = document.getElementById('rangeQueryCanvas');
@@ -214,6 +221,9 @@ $(document).ready(function(){
         points = new Array();
         xTree = new Array();
         yTree = new Array();
+        selectRect = null;
+        xRangeLeft = -1;
+        xRangeRight = -1;
         redraw();
     }
 
@@ -247,10 +257,22 @@ $(document).ready(function(){
 				if(xTree[i].isLeaf && xTree[i].refPoint == highlightedPointIndex){
 					xTree[i].color="#FF0000";
 				} else if(xCanvasPos != null && Math.abs(xTree[i].x - xCanvasPos.x) < 6 && Math.abs(xTree[i].y - xCanvasPos.y) < 6){
-					xTree[i].color = "#FF0000";
+                    if(xTree[i].isLeaf){
+                        xTree[i].color = "#FF0000";
+                    } else {
+                        xTree[i].color = "#00FF00";
+                    }
 					if(!xTree[i].isLeaf){
-						xTree[xTree[i].leftChild].color = xTree[i].color;
-						xTree[xTree[i].rightChild].color = xTree[i].color;
+                        if(xTree[xTree[i].leftChild].isLeaf){
+                            xTree[xTree[i].leftChild].color = "#FF0000";
+                        } else {
+                            xTree[xTree[i].leftChild].color = xTree[i].color;
+                        }
+                        if(xTree[xTree[i].rightChild].isLeaf){
+                            xTree[xTree[i].rightChild].color = "#FF0000";
+                        } else {
+                            xTree[xTree[i].rightChild].color = xTree[i].color;
+                        }
 						var leftDesc = xTree[i], rightDesc = xTree[i];
 						while(!leftDesc.isLeaf){
 							leftDesc = xTree[leftDesc.leftChild];
@@ -261,12 +283,20 @@ $(document).ready(function(){
 						xRangeLeft = points[leftDesc.refPoint].x;
 						xRangeRight = points[rightDesc.refPoint].x;
 					} else {
-						points[xTree[i].refPoint].color = xTree[i].color;
+                        points[xTree[i].refPoint].color = xTree[i].color;
 					}
 				} else {
 					if(!xTree[i].isLeaf){
-						xTree[xTree[i].leftChild].color = xTree[i].color;
-						xTree[xTree[i].rightChild].color = xTree[i].color;
+                        if(xTree[xTree[i].leftChild].isLeaf && xTree[i].color == "#00FF00"){
+                            xTree[xTree[i].leftChild].color = "#FF0000";
+                        } else {
+                            xTree[xTree[i].leftChild].color = xTree[i].color;
+                        }
+                        if(xTree[xTree[i].rightChild].isLeaf && xTree[i].color == "#00FF00"){
+                            xTree[xTree[i].rightChild].color = "#FF0000";
+                        } else {
+                            xTree[xTree[i].rightChild].color = xTree[i].color;
+                        }
 					} else {
 						points[xTree[i].refPoint].color = xTree[i].color;
 					}
@@ -296,9 +326,23 @@ $(document).ready(function(){
 				xCtx.strokeStyle=xTree[i].color;
 			}
 			if(xTree[i].isLeaf){
-                xCtx.arc(xTree[i].x,xTree[i].y,5,0,2*Math.PI);
+                if(xTree[i].color == "#222222"){
+                    xCtx.drawImage(whiteCirc10px, xTree[i].x - 5, xTree[i].y - 5);
+                } else if(xTree[i].color == "#FF0000"){
+                    xCtx.drawImage(redCirc10px, xTree[i].x - 5, xTree[i].y - 5);
+                } else {
+                    xCtx.arc(xTree[i].x,xTree[i].y,5,0,2*Math.PI);
+                }
             } else {
-                xCtx.rect(xTree[i].x - 5, xTree[i].y - 5, 10, 10);
+                if(xTree[i].color == "#222222"){
+                    xCtx.drawImage(whiteRect10px, xTree[i].x - 5, xTree[i].y - 5);
+                } else if(xTree[i].color == "#FF0000"){
+                    xCtx.drawImage(redRect10px, xTree[i].x - 5, xTree[i].y - 5);
+                } else if(xTree[i].color == "#00FF00"){
+                    xCtx.drawImage(greenRect10px, xTree[i].x - 5, xTree[i].y - 5);
+                } else {
+                    xCtx.rect(xTree[i].x - 5, xTree[i].y - 5, 10, 10);
+                }
             }
             xCtx.stroke();
 		}
