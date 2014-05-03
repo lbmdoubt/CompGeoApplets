@@ -10,8 +10,11 @@ $(document).ready(function(){
 	var yTree = new Array();
     var selectRect = null;
     var isMouseDown = false;
+    var isMouseDownXCanvas = false;
 	var xRangeLeft = -1;
 	var xRangeRight = -1;
+    var xOffset = 0;
+    var yOffset = 0;
 
     //set up action listeners
     canvas = document.getElementById('rangeQueryCanvas');
@@ -19,7 +22,6 @@ $(document).ready(function(){
     yCanvas = document.getElementById('yTreeCanvas');
 	var clearButton = document.getElementById('rangeQueryClear');
 	clearButton.onclick=function(){clearRangeQueryCanvas()};
-    console.log("elements retrieved");
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
     canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
     canvas.addEventListener('mousemove', function(e) {
@@ -27,6 +29,15 @@ $(document).ready(function(){
 		xCanvasPos = null;
 		yCanvasPos = null;
         mouseMove();
+        redraw();
+    }, false);
+    canvas.addEventListener('mouseout', function(e) {
+        canvasPos = null;
+		xCanvasPos = null;
+		yCanvasPos = null;
+        startTime = -1;
+        selectedPointIndex = -1;
+        highlightedPointIndex = -1;
         redraw();
     }, false);
     xCanvas.addEventListener('mousemove', function(e) {
@@ -43,11 +54,16 @@ $(document).ready(function(){
         mouseMove();
         redraw();
     }, false);
+    xCanvas.addEventListener('mousedown', function(e){ xCanvasDown(e)}, false);
 
     function getCanvasPos(e, canvasId){
 		var c = document.getElementById(canvasId);
         var rect = c.getBoundingClientRect();
-        return {x: e.clientX - rect.left, y: e.clientY - rect.top};
+        var pos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+        if (pos.x > rect.width - 5 || pos.y > rect.height - 5){ //don't register position when its close to the border
+            pos = {x: -1, y: -1};
+        }
+        return pos;
     }
 
     function mouseDown(){
@@ -79,29 +95,32 @@ $(document).ready(function(){
 			return;
 		}
         endTime = new Date().getTime();
+        var newPointAdded = false;
         if(selectedPointIndex < 0 && endTime - startTime < 200){
 			if(points.length > maxPoints){
 				return;
 			}
             points[points.length] = canvasPos;
+            newPointAdded = true;
         } else {
             endTime = new Date().getTime();
             if(startTime > 0){
                 if(endTime - startTime < 200){
                     points.splice(selectedPointIndex, 1);
+                    selectedPointIndex = -1;
                 }
             }
         }
         //remove duplicate points
         var selectedPoint = selectedPointIndex;
-        if(endTime - startTime < 200){
-            if(selectedPoint < 0){
-                //ignore newly added point
-                selectedPoint = points.length - 1
-            }
+        if(selectedPoint < 0 && newPointAdded){
+            //ignore newly added point
+            selectedPoint = points.length - 1
+        }
+        if(selectedPoint >= 0){
             for(i = points.length - 1; i >= 0; i--){
                 if(i != selectedPoint && Math.abs(points[i].x - canvasPos.x) <= 8 && Math.abs(points[i].y - canvasPos.y) <= 8){
-                        points.splice(i, 1);
+                    points.splice(i, 1);
                 }
             }
         }
@@ -114,14 +133,17 @@ $(document).ready(function(){
         if(startTime > 0){
             movePoint();
         }
-        if(canvasPos != null && selectedPointIndex < 0 && selectRect != null && isMouseDown && endTime - startTime > 200){
+        if(canvasPos != null && selectedPointIndex < 0 && selectRect != null && isMouseDown && endTime - startTime > 200 && startTime > 0 && canvasPos.x > 0 && canvasPos.y > 0){
             selectRect.y2 = canvasPos.y;
             selectRect.x2 = canvasPos.x;
         }
     }
 
     function movePoint(){
-        if(selectedPointIndex >= 0 && canvasPos != null){
+        if(selectedPointIndex >= 0 && canvasPos != null && canvasPos.x > 1 && canvasPos.y > 1){
+            //var i = 0;
+            //while(i < points.length){
+            //}
             points[selectedPointIndex] = canvasPos;
 			constructXTree();
         }
@@ -169,7 +191,7 @@ $(document).ready(function(){
 			ctx.fillStyle = points[i].color;
             if(highlightedPointIndex == i){
 				ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
-            } else {
+            } else if (highlightedPointIndex < 0 || Math.abs(points[i].x - points[highlightedPointIndex].x) > 4 || Math.abs(points[i].y - points[highlightedPointIndex].y) > 4){
                 ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
             }
         }
@@ -253,6 +275,9 @@ $(document).ready(function(){
 		}
 	}
 	
+    function xCanvasDown(e){
+    }
+    
 	function drawXTree(){
 		if(xTree.length <= 0){
 			return;

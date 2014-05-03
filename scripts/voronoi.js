@@ -62,7 +62,7 @@ $(document).ready(function(){
         }
         for(i = points.length - 1; i >= 0; i--){
             if(i != selectedPoint && Math.abs(points[i].x - pos.x) <= 8 && Math.abs(points[i].y - pos.y) <= 8){
-                    points.splice(i, 1);
+                points.splice(i, 1);
             }
         }
         redraw();
