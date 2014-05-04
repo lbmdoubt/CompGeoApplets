@@ -351,7 +351,7 @@ $(document).ready(function(){
                     if(xTree[i].inRange && (xTree[i].parent < 0 || !xTree[xTree[i].parent].inRange)){
                         ctx.beginPath();
                         ctx.strokeStyle = "#0000FF";
-                        ctx.globalAlpha = 0.4;
+                        ctx.globalAlpha = 0.3;
                         ctx.moveTo(xTree[i].min, y);
                         ctx.lineTo(xTree[i].min, y2);
                         if(xTree[i].max != xTree[i].min){
@@ -365,7 +365,7 @@ $(document).ready(function(){
                             if(yTreeList[i].tree[j].inRange && (yTreeList[i].tree[j].parent < 0 || !yTreeList[i].tree[yTreeList[i].tree[j].parent].inRange)){
                                 ctx.beginPath();
                                 ctx.strokeStyle = "#0000FF";
-                                ctx.globalAlpha = 0.4;
+                                ctx.globalAlpha = 0.3;
                                 ctx.moveTo(xTree[i].min, yTreeList[i].tree[j].min);
                                 ctx.lineTo(xTree[i].max, yTreeList[i].tree[j].min);
                                 if(yTreeList[i].tree[j].max != yTreeList[i].tree[j].min){
@@ -373,6 +373,16 @@ $(document).ready(function(){
                                     ctx.lineTo(xTree[i].max, yTreeList[i].tree[j].max);
                                 }
                                 ctx.stroke();
+                                ctx.fillStyle = "#0000FF";
+                                ctx.globalAlpha = 0.2;
+                                if(xTree[i].max-xTree[i].min == 0 || yTreeList[i].tree[j].max-yTreeList[i].tree[j].min == 0){
+                                    ctx.globalAlpha = 0.5;
+                                }
+                                if(xTree[i].isLeaf){
+                                    ctx.fillRect(xTree[i].min, y, 1, y2-y);
+                                } else {
+                                    ctx.fillRect(xTree[i].min,yTreeList[i].tree[j].min,Math.max(xTree[i].max-xTree[i].min, 1),Math.max(yTreeList[i].tree[j].max-yTreeList[i].tree[j].min,1));
+                                }
                                 ctx.globalAlpha = 1.0;
                                 
                             }
