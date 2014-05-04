@@ -12,6 +12,11 @@ canvas
     border-style:solid;
     border-color:#aaaaaa;
 }
+.dualityCanvas
+{
+    width:348px;
+    height:398px;
+}
 #rangeQueryCanvas,#kdTreeCanvas
 {
     width:348px;

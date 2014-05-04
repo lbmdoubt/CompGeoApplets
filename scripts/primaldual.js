@@ -126,8 +126,8 @@ $(document).ready(function(){
 		//fix the canvas scaling problems
 		canvas.height = canvas.getContext("2d").canvas.clientHeight;
 		canvas.width = canvas.getContext("2d").canvas.clientWidth;
-        //dualcanvas.height = dualcanvas.getContext("2d").dualcanvas.clientHeight;
-        //dualcanvas.width = dualcanvas.getContext("2d").dualcanvas.clientWidth;
+        dualcanvas.height = dualcanvas.getContext("2d").canvas.clientHeight;
+        dualcanvas.width = dualcanvas.getContext("2d").canvas.clientWidth;
 	}
 	
     function clearPrimalDualCanvas(){
