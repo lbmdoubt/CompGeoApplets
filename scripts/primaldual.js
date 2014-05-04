@@ -92,14 +92,36 @@ $(document).ready(function(){
         ctx.save();
         ctx2.save();
         clearCanvas();
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height / 2);
+        ctx.lineTo(canvas.width, canvas.height / 2);
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.closePath();
+        ctx.strokeStyle="#222222";
+        ctx.stroke();
+        ctx2.beginPath();
+        ctx2.moveTo(0, dualcanvas.height / 2);
+        ctx2.lineTo(dualcanvas.width, dualcanvas.height / 2);
+        ctx2.moveTo(dualcanvas.width / 2, 0);
+        ctx2.lineTo(dualcanvas.width / 2, dualcanvas.height);
+        ctx2.closePath();
+        ctx2.strokeStyle="#222222";
+        ctx2.stroke();
         for(i = 0; i < points.length; i++){
             if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
                 if(selectedPointIndex < 0 || i == selectedPointIndex){
 					ctx.fillStyle="#FF0000";
                     ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
                     ctx2.beginPath();
-                    ctx2.moveTo(0, dualcanvas.height - points[i].y);
-                    ctx2.lineTo((points[i].y / points[i].x) * 120, dualcanvas.height);
+                    truex = (dualcanvas.height / 2 - points[i].y)/(points[i].x - dualcanvas.width / 2);
+                    truey = points[i].y;
+                    pointone = truey;
+                    pointtwo = dualcanvas.width * truex + truey;
+                    console.log(pointone);
+                    console.log(pointtwo);
+                    ctx2.moveTo(dualcanvas.width, pointone);
+                    ctx2.lineTo(0, pointtwo);
                     ctx2.lineWidth = 1;
                     ctx2.closePath();
                     ctx2.strokeStyle="#FF0000";
@@ -110,8 +132,12 @@ $(document).ready(function(){
                 ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
                 ctx2.fillStyle="#000000";
                 ctx2.beginPath();
-                ctx2.moveTo(0, dualcanvas.height - points[i].y);
-                ctx2.lineTo((points[i].y / points[i].x) * 120, dualcanvas.height);
+                truex = (dualcanvas.height / 2 - points[i].y)/(points[i].x - dualcanvas.width / 2);
+                truey = points[i].y;
+                pointone = truey;
+                pointtwo = dualcanvas.width * truex + truey;
+                ctx2.moveTo(dualcanvas.width, pointone);
+                ctx2.lineTo(0, pointtwo);
                 ctx2.lineWidth = 1;
                 ctx2.closePath();
                 ctx2.fill();
