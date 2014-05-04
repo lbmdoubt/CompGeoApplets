@@ -550,13 +550,17 @@ $(document).ready(function(){
 		for(var i=0; i < xTree.length; i++){
             if(selectRect != null && xTree[i].min >= Math.min(selectRect.x1, selectRect.x2) && xTree[i].max <= Math.max(selectRect.x1, selectRect.x2)){
                 if(!(xTree[i].isLeaf && xTree[i].refPoint == highlightedPointIndex)){
-                    xTree[i].color = "#0000FF";
+                    if(xTree[i].parent < 0 || !xTree[xTree[i].parent].inRange){
+                        xTree[i].color = "#0000FF";
+                    }
 				}
                 xTree[i].inRange = true;
                 for(var j = 0; j < yTreeList[i].tree.length; j++){
                     if(yTreeList[i].tree[j].min >= Math.min(selectRect.y1, selectRect.y2) && yTreeList[i].tree[j].max <= Math.max(selectRect.y1, selectRect.y2)){
-                        yTreeList[i].tree[j].color = "#0000FF";
                         yTreeList[i].tree[j].inRange = true;
+                        if(yTreeList[i].tree[j].parent < 0 || !yTreeList[i].tree[yTreeList[i].tree[j].parent].inRange){
+                            yTreeList[i].tree[j].color = "#0000FF";
+                        }
                     } else {
                         yTreeList[i].tree[j].inRange = false;
                     }
@@ -565,7 +569,9 @@ $(document).ready(function(){
                     for(var j = 0; j < yTree.length; j++){
                         if(yTree[j].min >= Math.min(selectRect.y1, selectRect.y2) && yTree[j].max <= Math.max(selectRect.y1, selectRect.y2)){
                             if(!(yTree[j].isLeaf && yTreePoints[yTree[j].refPoint].i == highlightedPointIndex)){
-                                yTree[j].color = "#0000FF";
+                                if(yTree[j].parent < 0 || !yTree[yTree[j].parent].inRange){
+                                    yTree[j].color = "#0000FF";
+                                }
                             } else {
                                 yTree[j].color = "#FF0000";
                             }
