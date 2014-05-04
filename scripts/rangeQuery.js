@@ -46,6 +46,7 @@ $(document).ready(function(){
 	clearButton.onclick=function(){
         xCanvasXOffset = 0;
         xCanvasYOffset = 0;
+        selectedXNodeIndex = -1;
         clearRangeQueryCanvas();
     };
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
@@ -144,6 +145,7 @@ $(document).ready(function(){
 			}
             points[points.length] = canvasPos;
             newPointAdded = true;
+            selectedXNodeIndex = -1;
         } else {
             endTime = new Date().getTime();
             if(startTime > 0){
@@ -152,6 +154,7 @@ $(document).ready(function(){
                     selectedPointIndex = -1;
                 }
             }
+            selectedXNodeIndex = -1;
         }
         //remove duplicate points
         var selectedPoint = selectedPointIndex;
@@ -183,10 +186,8 @@ $(document).ready(function(){
 
     function movePoint(){
         if(selectedPointIndex >= 0 && canvasPos != null && canvasPos.x > 1 && canvasPos.y > 1){
-            //var i = 0;
-            //while(i < points.length){
-            //}
             points[selectedPointIndex] = canvasPos;
+            selectedXNodeIndex = -1;
 			constructXTree();
         }
     }
