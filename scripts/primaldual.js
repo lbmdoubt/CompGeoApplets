@@ -1,10 +1,14 @@
 $(document).ready(function(){
     var pos;
+    var posDual;
     var points = new Array();
-    var dualpoints = new Array();
+    var pointsDual = new Array();
     var canvas;
+    var dualcanvas;
     var startTime = -1;
+    var startTimeDual = -1;
     var selectedPointIndex = -1;
+    var selectedPointIndexDual = -1;
 	var maxPoints = 200;
 
     //set up action listeners
@@ -20,7 +24,74 @@ $(document).ready(function(){
         clearCanvas();
         redraw();
     }, false);
+    dualcanvas.addEventListener('mouseup', function(){ mouseUpDual()}, false);
+    function mouseUpDual(){
+        addPointDual();
+        startTimeDual = -1;
+        selectedPointIndexDual = -1;
+    }
+
+    function addPointDual(){
+        if(selectedPointIndexDual < 0){
+            if(pointsDual.length < maxPoints){
+                pointsDual[pointsDual.length] = posDual;
+            }
+        } else {
+            endTimeDual = new Date().getTime();
+            if(startTimeDual > 0){
+                if(endTimeDual - startTimeDual < 250){
+                    pointsDual.splice(selectedPointIndexDual, 1);
+                }
+            }
+        }
+        //remove duplicate points
+        var selectedPointDual = selectedPointIndexDual;
+        if(selectedPointDual < 0){
+            //ignore newly added point
+            selectedPointDual = pointsDual.length - 1
+        }
+        for(i = pointsDual.length - 1; i >= 0; i--){
+            if(i != selectedPointDual && Math.abs(pointsDual[i].x - posDual.x) <= 8 && Math.abs(pointsDual[i].y - posDual.y) <= 8){
+                    pointsDual.splice(i, 1);
+            }
+        }
+        redraw();
+    }
+
+    dualcanvas.addEventListener('mousedown', function(){ mouseDownDual()}, false);
+    function mouseDownDual(){
+        startTimeDual = new Date().getTime();
+        selectedPointIndexDual = -1;
+        for(i = 0; i < pointsDual.length; i++){
+            if(Math.abs(pointsDual[i].x - posDual.x) <= 4 && Math.abs(pointsDual[i].y - posDual.y) <= 4){
+                selectedPointIndexDual = i;
+            }
+        }
+    }
+    dualcanvas.addEventListener('mousemove', function(e){
+        posDual = getCanvasPosDual(e);
+        mouseMoveDual();
+        clearCanvas();
+        redraw();
+    }, false);
+
+    function mouseMoveDual(){
+        endTimeDual = new Date().getTime();
+        if(startTimeDual > 0){
+            movePointDual();
+        }
+    }
+
+    function movePointDual(){
+        if(selectedPointIndexDual >= 0){
+            pointsDual[selectedPointIndexDual] = posDual;
+        }
+    }    
     
+    function getCanvasPosDual(e){
+        var rect = dualcanvas.getBoundingClientRect();
+        return {x: e.clientX - rect.left, y: e.clientY - rect.top};
+    }
     
     function getCanvasPos(e){
         var rect = canvas.getBoundingClientRect();
@@ -112,43 +183,48 @@ $(document).ready(function(){
             if(Math.abs(points[i].x - pos.x) <= 4 && Math.abs(points[i].y - pos.y) <= 4){
                 if(selectedPointIndex < 0 || i == selectedPointIndex){
 					ctx.fillStyle="#FF0000";
-                    ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
-                    ctx2.beginPath();
-                    truex = points[i].x - dualcanvas.width / 2;
-                    truey = dualcanvas.height / 2 - points[i].y;
-                    pointone =  - dualcanvas.width / 2 * truex - dualcanvas.height / 2 + truey;
-                    pointtwo = dualcanvas.width / 2 * truex - dualcanvas.height / 2 + truey;
-                    console.log(pointone);
-                    console.log(pointtwo);
-                    console.log(truex);
-                    console.log(truey);
-                    console.log(dualcanvas.width);
-                    ctx2.moveTo(0, pointone);
-                    ctx2.lineTo(dualcanvas.width, pointtwo);
-                    ctx2.lineWidth = 1;
-                    ctx2.closePath();
                     ctx2.strokeStyle="#FF0000";
-                    ctx2.stroke();
                 }
             } else {
 				ctx.fillStyle="#000000";
-                ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
-                ctx2.fillStyle="#000000";
-                ctx2.beginPath();
-                truex = (dualcanvas.height / 2 - points[i].y)/(points[i].x - dualcanvas.width / 2);
-                truey = points[i].y;
-                pointone = truey;
-                pointtwo = dualcanvas.width * truex + truey;
-                ctx2.moveTo(dualcanvas.width, pointone);
-                ctx2.lineTo(0, pointtwo);
-                ctx2.lineWidth = 1;
-                ctx2.closePath();
-                ctx2.fill();
                 ctx2.strokeStyle="#000000";
-                ctx2.stroke();
             }
+            ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
+            ctx2.beginPath();
+            truex = (points[i].x - dualcanvas.width / 2) / (canvas.width / 10);
+            truey = dualcanvas.height / 2 - points[i].y;
+            pointone =  dualcanvas.height / 2 - (- dualcanvas.width / 2 * truex - truey);
+            pointtwo = dualcanvas.height / 2 - (dualcanvas.width / 2 * truex - truey);
+            ctx2.moveTo(0, pointone);
+            ctx2.lineTo(dualcanvas.width, pointtwo);
+            ctx2.lineWidth = 1;
+            ctx2.closePath();
+            ctx2.stroke();
+        }
+        for(i = 0; i < pointsDual.length; i++){
+            if(Math.abs(pointsDual[i].x - posDual.x) <= 4 && Math.abs(pointsDual[i].y - posDual.y) <= 4){
+                if(selectedPointIndex < 0 || i == selectedPointIndex){
+                    ctx2.fillStyle="#FF0000";
+                    ctx.strokeStyle="#FF0000";
+                }
+            } else {
+                ctx2.fillStyle="#000000";
+                ctx.strokeStyle="#000000";
+            }
+            ctx2.fillRect(pointsDual[i].x - 2,pointsDual[i].y - 2,5,5);
+            ctx.beginPath();
+            truex = (pointsDual[i].x - canvas.width / 2) / (dualcanvas.width / 10);
+            truey = canvas.height / 2 - pointsDual[i].y;
+            pointone =  canvas.height / 2 - (- canvas.width / 2 * truex - truey);
+            pointtwo = canvas.height / 2 - (canvas.width / 2 * truex - truey);
+            ctx.moveTo(0, pointone);
+            ctx.lineTo(dualcanvas.width, pointtwo);
+            ctx.lineWidth = 1;
+            ctx.closePath();
+            ctx.stroke();
         }
         ctx.restore();
+        ctx2.restore();
     }
 
 	function fixScale(){
@@ -161,6 +237,7 @@ $(document).ready(function(){
 	
     function clearPrimalDualCanvas(){
         points = new Array();
+        pointsDual = new Array();
         redraw();
     }
 
