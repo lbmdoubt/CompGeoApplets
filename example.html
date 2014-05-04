@@ -13,7 +13,10 @@
 		<p>Each applet is placed in its own tab and doesn't influence the other applet. The basic usage for the two applets are as follows. Clicking on the canvas adds a point to that location. While you hover over that point, it is highlighted in red. Clicking that point again removes the point. Clicking and dragging the point moves it around the canvas. The clear button removes the points and all related data. The number of points is capped at 200.</p>
 		</br>
 		<h3>Duality</h3>
-		<p></p>
+		<p>This applet demonstrates the point/line duality transform. The left pane is the primal plane and the right pane is the dual plane. You can both add points on the primal plane or the dual plane. Then the corresponding transformed line will show up on the other plane. The three properties of duality can be explicitly demonstrated by this applet. 
+		</p>
+		<p>Tip: When you hover your mouse on a point, both the corresponding transformed line and this point will turn red.
+		</p> 
 		</br>
 		<h3>Orthogonal Range Trees</h3>
 		<p>This applet demonstrates the algorithm for orthogonal range trees for range searches. This applet doesn't implement the the exact algorithm, but rather it is meant to demonstrate how it works. Orthogonal Range trees is a way of finding all points in a range by using multiple range trees. Each range tree is a tree where each node defines a range along an axis that contains all its children. The orthogonal range trees is a range tree along the x-axis where each node also contains a y-axis range tree of the node's leaves. Querying is done by finding the nodes in the x range tree that fits into the range along teh x axis, then querying each y range tree in those nodes.</p>
