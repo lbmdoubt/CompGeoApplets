@@ -75,6 +75,8 @@ $(document).ready(function(){
         redraw();
     }, false);
 
+    redraw();
+    
     function mouseMoveDual(){
         endTimeDual = new Date().getTime();
         if(startTimeDual > 0){
