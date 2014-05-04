@@ -8,16 +8,21 @@ $(document).ready(function(){
     var selectedPointYTreeIndex = -1;
     var highlightedPointIndex = -1;
     var selectedXNodeIndex = -1;
+    var selectedYNodeIndex = -1;
 	var maxPoints = 200;
 	var xTree = new Array();
+    var yTreeList = null;
 	var yTree = new Array();
 	var yTreePoints = new Array();
+    var selectRectStart = null;
     var selectRect = null;
     var isMouseDown = false;
     var isMouseDownXCanvas = false;
     var isMouseDownYCanvas = false;
 	var xRangeLeft = -1;
 	var xRangeRight = -1;
+    var yRangeTop = -1;
+    var yRangeBottom = -1;
     var xCanvasXOffset = 0;
     var xCanvasYOffset = 0;
     var yCanvasXOffset = 0;
@@ -86,6 +91,21 @@ $(document).ready(function(){
         redraw();
         xCanvasPosPre=xCanvasPos;
     }, false);
+    xCanvas.addEventListener('mousedown', function(e){ 
+        isMouseDownXCanvas = true;
+        startTime = new Date().getTime();
+    }, false);
+    xCanvas.addEventListener('mouseup', function(e){ 
+        isMouseDownXCanvas = false;
+        clickXCanvas();
+        startTime = -1;
+    }, false);
+    xCanvas.addEventListener('mouseout', function(e) {
+        canvasPos = null;
+		xCanvasPos = null;
+		yCanvasPos = null;
+        startTime = -1;
+    }, false);
     yCanvas.addEventListener('mousemove', function(e) {
         yCanvasPos = getCanvasPos(e, 'yTreeCanvas');
 		canvasPos = null;
@@ -93,10 +113,11 @@ $(document).ready(function(){
         redraw();
         yCanvasPosPre=yCanvasPos;
     }, false);
-    xCanvas.addEventListener('mousedown', function(e){ isMouseDownXCanvas = true}, false);
-    xCanvas.addEventListener('mouseup', function(e){ 
-        isMouseDownXCanvas = false;
-        clickXCanvas();
+    yCanvas.addEventListener('mouseout', function(e) {
+        canvasPos = null;
+		xCanvasPos = null;
+		yCanvasPos = null;
+        startTime = -1;
     }, false);
 
     function getCanvasPos(e, canvasId){
@@ -110,6 +131,7 @@ $(document).ready(function(){
     }
 
     function mouseDown(){
+        console.log(selectRect);
         isMouseDown = true;
         startTime = new Date().getTime();
         selectedPointIndex = -1;
@@ -120,9 +142,10 @@ $(document).ready(function(){
 				}
 			}
 			if(selectedPointIndex < 0){
-				selectRect = {x1:canvasPos.x, y1:canvasPos.y, x2:canvasPos.x, y2:canvasPos.y};
+                selectRectStart = canvasPos;
 			}
 		}
+        console.log(selectRect);
     }
 
     function mouseUp(){
@@ -137,24 +160,26 @@ $(document).ready(function(){
 		if(canvasPos == null){
 			return;
 		}
-        endTime = new Date().getTime();
+        var endTime = new Date().getTime();
         var newPointAdded = false;
         if(selectedPointIndex < 0 && endTime - startTime < 200){
 			if(points.length > maxPoints){
 				return;
 			}
-            points[points.length] = canvasPos;
+            points.push({x:canvasPos.x, y:canvasPos.y, i:points.length});
             newPointAdded = true;
             selectedXNodeIndex = -1;
+            yTreeList = null;
         } else {
             endTime = new Date().getTime();
             if(startTime > 0){
                 if(endTime - startTime < 200){
                     points.splice(selectedPointIndex, 1);
                     selectedPointIndex = -1;
+                    selectedXNodeIndex = -1;
+                    yTreeList = null;
                 }
             }
-            selectedXNodeIndex = -1;
         }
         //remove duplicate points
         var selectedPoint = selectedPointIndex;
@@ -169,18 +194,17 @@ $(document).ready(function(){
                 }
             }
         }
-		constructXTree();
+		constructTrees();
         redraw();
     }
 
     function mouseMove(){
-        endTime = new Date().getTime();
+        var endTime = new Date().getTime();
         if(startTime > 0){
             movePoint();
         }
-        if(canvasPos != null && selectedPointIndex < 0 && selectRect != null && isMouseDown && endTime - startTime > 200 && startTime > 0 && canvasPos.x > 0 && canvasPos.y > 0){
-            selectRect.y2 = canvasPos.y;
-            selectRect.x2 = canvasPos.x;
+        if(canvasPos != null && selectedPointIndex < 0 && selectRectStart != null && isMouseDown && endTime - startTime > 200 && startTime > 0 && canvasPos.x > 0 && canvasPos.y > 0){
+			selectRect = {x1:selectRectStart.x, y1:selectRectStart.y, x2:canvasPos.x, y2:canvasPos.y};
         }
     }
 
@@ -188,7 +212,8 @@ $(document).ready(function(){
         if(selectedPointIndex >= 0 && canvasPos != null && canvasPos.x > 1 && canvasPos.y > 1){
             points[selectedPointIndex] = canvasPos;
             selectedXNodeIndex = -1;
-			constructXTree();
+            yTreeList = null;
+			constructTrees();
         }
     }
 
@@ -200,6 +225,36 @@ $(document).ready(function(){
         ctx.save();
         
 		calcHoverColors();
+        
+		if(xRangeLeft >= 0 && xRangeRight >= 0 && xRangeRight >= xRangeLeft){
+			xRangeRight = Math.min(xRangeRight, canvas.width);
+			ctx.strokeStyle = "#00FF00";
+			ctx.fillStyle = "#00FF00";
+			ctx.globalAlpha = 0.2;
+			ctx.fillRect(xRangeLeft, 0, xRangeRight - xRangeLeft, canvas.height);
+			ctx.globalAlpha = 1.0;
+            ctx.beginPath();
+			ctx.moveTo(xRangeLeft,0);
+			ctx.lineTo(xRangeLeft,canvas.height);
+			ctx.moveTo(xRangeRight,0);
+			ctx.lineTo(xRangeRight,canvas.height);
+			ctx.stroke();
+		}
+        
+        if(yRangeTop >= 0 && yRangeBottom >= 0 && yRangeBottom >= yRangeTop){
+           yRangeBottom = Math.min(yRangeBottom, canvas.height);
+			ctx.strokeStyle = "#00FF00";
+			ctx.fillStyle = "#00FF00";
+			ctx.globalAlpha = 0.2;
+			ctx.fillRect(0, yRangeTop, canvas.width, yRangeBottom - yRangeTop);
+			ctx.globalAlpha = 1.0;
+            ctx.beginPath();
+			ctx.moveTo(0,yRangeTop);
+			ctx.lineTo(canvas.width,yRangeTop);
+			ctx.moveTo(0,yRangeBottom);
+			ctx.lineTo(canvas.height,yRangeBottom);
+			ctx.stroke();
+        }
 		
         if(selectRect != null){
             var x = Math.min(selectRect.x1, selectRect.x2);
@@ -210,31 +265,19 @@ $(document).ready(function(){
             ctx.fillStyle = "#0000FF";
             ctx.fillRect(x,y,xDiff,yDiff);
             ctx.globalAlpha = 1.0;
+            ctx.beginPath();
             ctx.strokeStyle = "#0000FF";
             ctx.rect(x,y,xDiff,yDiff);
             ctx.stroke();
             ctx.strokeStyle = "#000000";
         }
         
-		if(xRangeLeft >= 0 && xRangeRight >= 0 && xRangeRight >= xRangeLeft){
-			xRangeRight = Math.min(xRangeRight + 1, canvas.width);
-			ctx.strokeStyle = "#00FF00";
-			ctx.fillStyle = "#00FF00";
-			ctx.globalAlpha = 0.2;
-			ctx.fillRect(xRangeLeft, 0, xRangeRight - xRangeLeft, canvas.height);
-			ctx.globalAlpha = 1.0;
-			ctx.moveTo(xRangeLeft,0);
-			ctx.lineTo(xRangeLeft,canvas.height);
-			ctx.moveTo(xRangeRight,0);
-			ctx.lineTo(xRangeRight,canvas.height);
-			ctx.stroke();
-		}
-		
         for(var i = 0; i < points.length; i++){
-			ctx.fillStyle = points[i].color;
             if(highlightedPointIndex == i){
+                ctx.fillStyle = "#FF0000";
 				ctx.fillRect(points[i].x - 2,points[i].y - 2,5,5);
             } else if (highlightedPointIndex < 0 || Math.abs(points[i].x - points[highlightedPointIndex].x) > 4 || Math.abs(points[i].y - points[highlightedPointIndex].y) > 4){
+                ctx.fillStyle = points[i].color;
                 ctx.fillRect(points[i].x - 1,points[i].y - 1,3,3);
             }
         }
@@ -259,8 +302,11 @@ $(document).ready(function(){
         xTree = new Array();
         yTree = new Array();
         selectRect = null;
+        selectRectStart = null;
         xRangeLeft = -1;
         xRangeRight = -1;
+        yRangeTop = -1;
+        yRangeBottom = -1;
         redraw();
     }
 
@@ -296,7 +342,20 @@ $(document).ready(function(){
 					xTree[i].color="#FF0000";
 				} else if((xCanvasPos != null && Math.abs(xTree[i].x - xCanvasPos.x + xCanvasXOffset) < 6 && Math.abs(xTree[i].y - xCanvasPos.y + xCanvasYOffset) < 6 && selectedXNodeIndex < 0) || selectedXNodeIndex == i){
                     isHoveringOverNode = true;
-                    constructYTreeFromNode(xTree[i]);
+                    
+                    yTree = yTreeList[i].tree;
+                    yTreePoints = yTreeList[i].points;
+                    
+                    for(var j = 0; j < yTree.length; j++){
+                        yCanvasXOffsetMin = Math.min(yCanvas.width - yTree[j].x - 10, yCanvasXOffsetMin);
+                        yCanvasXOffsetMax = Math.max(-1 * yTree[j].x + 10, yCanvasXOffsetMax);
+                        yCanvasYOffsetMin = Math.min(yCanvas.height - yTree[j].y - 10, yCanvasYOffsetMin);
+                        yCanvasYOffsetMax = Math.max(-1 * yTree[j].y + 10, yCanvasYOffsetMax);
+                    }
+                    
+                    yCanvasXOffset = Math.max(Math.min(yCanvasXOffset, yCanvasXOffsetMax), yCanvasXOffsetMin);
+                    yCanvasYOffset = Math.max(Math.min(yCanvasYOffset, yCanvasYOffsetMax), yCanvasYOffsetMin);
+                    
                     for(var j = 0; j < yTree.length; j++){
                         yTree[j].color = "#222222";
                     }
@@ -354,6 +413,79 @@ $(document).ready(function(){
                 yTree = new Array();
             }
 		}
+        if(yTree.length > 0 && selectedXNodeIndex >= 0){
+            yTree[0].color = "#222222";
+			yRangeTop = -1;
+			yRangeBottom = -1;
+            var isHoveringOverNode = false;
+			for(var i=0; i < yTree.length; i++){
+				if(yTree[i].isLeaf && yTreePoints[yTree[i].refPoint].i == highlightedPointIndex){
+					yTree[i].color="#FF0000";
+				} else if((yCanvasPos != null && Math.abs(yTree[i].x - yCanvasPos.x + yCanvasXOffset) < 6 && Math.abs(yTree[i].y - yCanvasPos.y + yCanvasYOffset) < 6 && selectedYNodeIndex < 0) || selectedYNodeIndex == i){
+                    isHoveringOverNode = true;
+                    
+                    if(yTree[i].isLeaf){
+                        yTree[i].color = "#FF0000";
+                    } else {
+                        yTree[i].color = "#00FF00";
+                    }
+					if(!yTree[i].isLeaf){
+                        if(yTree[yTree[i].leftChild].isLeaf){
+                            yTree[yTree[i].leftChild].color = "#FF0000";
+                        } else {
+                            yTree[yTree[i].leftChild].color = yTree[i].color;
+                        }
+                        if(yTree[yTree[i].rightChild].isLeaf){
+                            yTree[yTree[i].rightChild].color = "#FF0000";
+                        } else {
+                            yTree[yTree[i].rightChild].color = yTree[i].color;
+                        }
+						var leftDesc = yTree[i], rightDesc = yTree[i];
+						while(!leftDesc.isLeaf){
+							leftDesc = yTree[leftDesc.leftChild];
+						}
+						while(!rightDesc.isLeaf){
+							rightDesc = yTree[rightDesc.rightChild];
+						}
+						yRangeTop = yTreePoints[leftDesc.refPoint].y;
+                        if(rightDesc.refPoint >= yTreePoints.length - 1){
+                            yRangeBottom = yTreePoints[rightDesc.refPoint].y;
+                        } else {
+                            yRangeBottom = Math.max(yTreePoints[rightDesc.refPoint + 1].y - 1, yTreePoints[rightDesc.refPoint].y);
+                        }
+					} else {
+                        yTreePoints[yTree[i].refPoint].color = yTree[i].color;
+					}
+				} else {
+					if(!yTree[i].isLeaf){
+                        if(yTree[yTree[i].leftChild].isLeaf && yTree[i].color == "#00FF00"){
+                            yTree[yTree[i].leftChild].color = "#FF0000";
+                        } else {
+                            yTree[yTree[i].leftChild].color = yTree[i].color;
+                        }
+                        if(yTree[yTree[i].rightChild].isLeaf && yTree[i].color == "#00FF00"){
+                            yTree[yTree[i].rightChild].color = "#FF0000";
+                        } else {
+                            yTree[yTree[i].rightChild].color = yTree[i].color;
+                        }
+					} else {
+						yTreePoints[yTree[i].refPoint].color = yTree[i].color;
+					}
+				}
+            }
+            
+            if(isHoveringOverNode){
+                for(var i=0; i < yTree.length; i++){
+                    if(yTree[i].isLeaf){
+                        for(var j = 0; j < xTree.length; j++){
+                            if(xTree[j].isLeaf && xTree[j].refPoint == yTreePoints[yTree[i].refPoint].i){
+                                xTree[j].color = yTree[i].color;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 	}
     
 	function drawXTree(){
@@ -414,7 +546,10 @@ $(document).ready(function(){
     
     
     function clickXCanvas(){
-        selectedXNodeIndex = -1;
+        var endTime = new Date().getTime();
+        if(startTime < 0 || endTime - startTime < 200){
+            selectedXNodeIndex = -1;
+        }
         for(var i = 0; i < xTree.length; i++){
             if(Math.abs(xTree[i].x - xCanvasPos.x + xCanvasXOffset) < 6 && Math.abs(xTree[i].y - xCanvasPos.y + xCanvasYOffset) < 6){
                 selectedXNodeIndex = i;
@@ -446,7 +581,7 @@ $(document).ready(function(){
         
             //draw the nodes
             yCtx.beginPath();
-            if(yTree[i].isLeaf && yTree[i].refPoint == highlightedPointIndex){
+            if(yTree[i].isLeaf && yTreePoints[yTree[i].refPoint].i == highlightedPointIndex){
 				yCtx.strokeStyle=yTree[i].color;
             } else if(yCanvasPos != null && Math.abs(yTree[i].x - yCanvasPos.x) < 6 && Math.abs(yTree[i].y - yCanvasPos.y) < 6){
 				yCtx.strokeStyle=yTree[i].color;
@@ -478,6 +613,15 @@ $(document).ready(function(){
 		yCtx.restore();
 	}
     
+    function constructTrees(){
+        constructXTree();
+        
+        yTreeList = new Array();
+        for(var i = 0; i < xTree.length; i++){
+            yTreeList.push(constructYTreeFromNode(xTree[i]));
+        }
+    }
+    
 	function constructXTree()
 	{
         xCanvasXOffsetMin = 0;
@@ -493,6 +637,9 @@ $(document).ready(function(){
 			selectedPoint = points[selectedPointIndex];
 		}
 		points.sort(function(a, b){return a.x - b.x});
+        for(var i = 0; i < points.length; i++){
+            points[i].i = i;
+        }
 		if(selectedPointIndex >= 0){
 			for(var i = 0; i < points.length; i++){
 				if(selectedPoint == points[i]){
@@ -545,66 +692,62 @@ $(document).ready(function(){
         while(!right.isLeaf){
             right = xTree[right.rightChild];
         }
-        yTreePoints = points.slice(left.refPoint, right.refPoint + 1);
-        constructYTree();
+        var pointList = points.slice(left.refPoint, right.refPoint + 1);
+        return {points:pointList, tree:constructYTree(pointList)};
 	}
     
-    function constructYTree(){
+    function constructYTree(pointList){
         yCanvasXOffsetMin = 0;
         yCanvasXOffsetMax = 0;
         yCanvasYOffsetMin = 0;
         yCanvasYOffsetMax = 0;
         
-		if(yTreePoints.length == 0){
-			yTree = new Array();
-			return;
+        var tree;
+        
+		if(pointList.length == 0){
+			tree = new Array();
+			return tree;
 		}
         
 		var selectedPoint;
 		if(selectedPointIndex >= 0){
 			selectedPoint = points[selectedPointIndex];
 		}
-		yTreePoints.sort(function(a, b){return a.y - b.y});
+		pointList.sort(function(a, b){return a.y - b.y});
 		if(selectedPointIndex >= 0){
-			for(var i = 0; i < yTreePoints.length; i++){
-				if(selectedPoint == yTreePoints[i]){
+			for(var i = 0; i < pointList.length; i++){
+				if(selectedPoint == pointList[i]){
 					selectedPointYTreeIndex = i;
 				}
 			}
 		}
-		yTree = constructTreeSub(yTreePoints, 0, yTreePoints.length);
-		yTree[0].isRoot = true;
-		for(var i = 0; i < yTree.length; i++){
-			if(!yTree[i].isLeaf)
+		tree = constructTreeSub(pointList, 0, pointList.length);
+		tree[0].isRoot = true;
+		for(var i = 0; i < tree.length; i++){
+			if(!tree[i].isLeaf)
 			{
-				yTree[i].rightChild = i + yTree[i].rightChild;
-				yTree[i].leftChild = i + yTree[i].leftChild;
-				yTree[i].parent = i + yTree[i].parent;
+				tree[i].rightChild = i + tree[i].rightChild;
+				tree[i].leftChild = i + tree[i].leftChild;
+				tree[i].parent = i + tree[i].parent;
 			}
 		}
 		width = yCanvas.width;
-		yTree[0].x = width / 2;
-		yTree[0].y = 25;
-		for(var i=0; i < yTree.length; i++){
-			if(!yTree[i].isLeaf){
+		tree[0].x = width / 2;
+		tree[0].y = 25;
+		for(var i=0; i < tree.length; i++){
+			if(!tree[i].isLeaf){
                 //calculate positions of children
-                var xChange = yTree[i].rightChild - yTree[i].leftChild;
+                var xChange = tree[i].rightChild - tree[i].leftChild;
                 //left child
-                yTree[yTree[i].leftChild].y = yTree[i].y + 20;
-                yTree[yTree[i].leftChild].x = yTree[i].x - xChange * 10;
+                tree[tree[i].leftChild].y = tree[i].y + 20;
+                tree[tree[i].leftChild].x = tree[i].x - xChange * 10;
                 
                 //right child
-                yTree[yTree[i].rightChild].y = yTree[i].y + 20;
-                yTree[yTree[i].rightChild].x = yTree[i].x + xChange * 10;
+                tree[tree[i].rightChild].y = tree[i].y + 20;
+                tree[tree[i].rightChild].x = tree[i].x + xChange * 10;
             }
-            yCanvasXOffsetMin = Math.min(yCanvas.width - yTree[i].x - 10, yCanvasXOffsetMin);
-            yCanvasXOffsetMax = Math.max(-1 * yTree[i].x + 10, yCanvasXOffsetMax);
-            yCanvasYOffsetMin = Math.min(yCanvas.height - yTree[i].y - 10, yCanvasYOffsetMin);
-            yCanvasYOffsetMax = Math.max(-1 * yTree[i].y + 10, yCanvasYOffsetMax);
 		}
-        yCanvasXOffset = Math.max(Math.min(yCanvasXOffset, yCanvasXOffsetMax), yCanvasXOffsetMin);
-        yCanvasYOffset = Math.max(Math.min(yCanvasYOffset, yCanvasYOffsetMax), yCanvasYOffsetMin);
-        
+        return tree;
 	}
 	
 	function constructTreeSub(sortedPoints, startIndex, endIndex)
