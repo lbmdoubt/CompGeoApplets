@@ -544,6 +544,7 @@ $(document).ready(function(){
 				}
             }
             
+            /**
             if(isHoveringOverNode){
                 for(var i=0; i < yTree.length; i++){
                     if(yTree[i].isLeaf){
@@ -555,6 +556,7 @@ $(document).ready(function(){
                     }
                 }
             }
+            */
         }
         
 		for(var i=0; i < xTree.length; i++){
