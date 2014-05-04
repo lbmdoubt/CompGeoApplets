@@ -575,6 +575,9 @@ $(document).ready(function(){
 								yTreeList[i].tree[j].color = "#0000FF";
 							}
 						}
+						if(yTreeList[i].tree[j].isLeaf){
+							points[yTreeList[i].points[yTreeList[i].tree[j].refPoint].i].color = "#FF0000";
+						}
                     } else {
                         yTreeList[i].tree[j].inRange = false;
                     }
@@ -591,9 +594,6 @@ $(document).ready(function(){
                             }
 							if(yTree[j].isLeaf && yTree[j].color != "#0000FF"){
 								yTree[j].color = "#FF0000";
-							}
-							if(yTree[j].isLeaf){
-								points[yTreePoints[yTree[j].refPoint].i].color = "#FF0000";
 							}
                             yTree[j].inRange = true;
                         } else {
