@@ -570,14 +570,16 @@ $(document).ready(function(){
                 for(var j = 0; j < yTreeList[i].tree.length; j++){
                     if(yTreeList[i].tree[j].min >= Math.min(selectRect.y1, selectRect.y2) && yTreeList[i].tree[j].max <= Math.max(selectRect.y1, selectRect.y2)){
                         yTreeList[i].tree[j].inRange = true;
-                        if(yTreeList[i].tree[j].parent < 0 || !yTreeList[i].tree[yTreeList[i].tree[j].parent].inRange){
-                            yTreeList[i].tree[j].color = "#0000FF";
-                        }
+						if(xTree[i].parent < 0 || !xTree[xTree[i].parent].inRange){
+							if(yTreeList[i].tree[j].parent < 0 || !yTreeList[i].tree[yTreeList[i].tree[j].parent].inRange){
+								yTreeList[i].tree[j].color = "#0000FF";
+							}
+						}
                     } else {
                         yTreeList[i].tree[j].inRange = false;
                     }
                 }
-                if(yTreeIndex == i){
+                if(yTreeIndex == i && (xTree[i].parent < 0 || !xTree[xTree[i].parent].inRange)){
                     for(var j = 0; j < yTree.length; j++){
                         if(yTree[j].min >= Math.min(selectRect.y1, selectRect.y2) && yTree[j].max <= Math.max(selectRect.y1, selectRect.y2)){
                             if(!(yTree[j].isLeaf && yTreePoints[yTree[j].refPoint].i == highlightedPointIndex)){
@@ -587,6 +589,12 @@ $(document).ready(function(){
                             } else {
                                 yTree[j].color = "#FF0000";
                             }
+							if(yTree[j].isLeaf && yTree[j].color != "#0000FF"){
+								yTree[j].color = "#FF0000";
+							}
+							if(yTree[j].isLeaf){
+								points[yTreePoints[yTree[j].refPoint].i].color = "#FF0000";
+							}
                             yTree[j].inRange = true;
                         } else {
                             yTree[j].inRange = false;
