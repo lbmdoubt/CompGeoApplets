@@ -12,7 +12,7 @@ canvas
     border-style:solid;
     border-color:#aaaaaa;
 }
-#rangeQueryCanvas
+#rangeQueryCanvas,#kdTreeCanvas
 {
     width:348px;
     height:398px;
@@ -20,5 +20,13 @@ canvas
 #xTreeCanvas,#yTreeCanvas
 {
     width:348px;
-    height:197px;
+    height:177px;
+}
+.rangeQuery
+{
+    display:block;
+}
+.kdTree
+{
+    display:none;
 }

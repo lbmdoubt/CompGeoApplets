@@ -45,6 +45,11 @@ $(document).ready(function(){
     var redCirc10px = document.getElementById("circ_red_10px");
     var whiteCirc10px = document.getElementById("circ_white_10px");
     var blueCirc10px = document.getElementById("circ_blue_10px");
+    
+    var mode = 0; //0:Orthogonal Range Tree, 1: kdTree
+    
+    var kdTreeButton = document.getElementById("kdTree");
+    var rangeTreeButton = document.getElementById("rangeTree");
 
     //set up action listeners
     canvas = document.getElementById('rangeQueryCanvas');
@@ -113,8 +118,28 @@ $(document).ready(function(){
         yCanvasPos = getCanvasPos(e, 'yTreeCanvas');
 		canvasPos = null;
 		xCanvasPos = null;
+        
+        if(isMouseDownYCanvas){
+            if(yCanvasPos.x > 0 && yCanvasPos.y > 0){
+                yCanvasXOffset += yCanvasPos.x - yCanvasPosPre.x;
+                yCanvasYOffset += yCanvasPos.y - yCanvasPosPre.y;
+                yCanvasXOffset = Math.max(Math.min(yCanvasXOffset, yCanvasXOffsetMax), yCanvasXOffsetMin);
+                yCanvasYOffset = Math.max(Math.min(yCanvasYOffset, yCanvasYOffsetMax), yCanvasYOffsetMin);
+            } else {
+                isMouseDownYCanvas = false;
+            }
+        }
+        
         redraw();
         yCanvasPosPre=yCanvasPos;
+    }, false);
+    yCanvas.addEventListener('mousedown', function(e){ 
+        isMouseDownYCanvas = true;
+        startTime = new Date().getTime();
+    }, false);
+    yCanvas.addEventListener('mouseup', function(e){ 
+        isMouseDownYCanvas = false;
+        startTime = -1;
     }, false);
     yCanvas.addEventListener('mouseout', function(e) {
         canvasPos = null;
@@ -195,7 +220,9 @@ $(document).ready(function(){
                 }
             }
         }
-		constructTrees();
+        if(mode == 0){
+            constructRangeTrees();
+        }
         redraw();
     }
 
@@ -214,7 +241,9 @@ $(document).ready(function(){
             points[selectedPointIndex] = canvasPos;
             selectedXNodeIndex = -1;
             yTreeList = null;
-			constructTrees();
+            if(mode == 0){
+                constructRangeTrees();
+            }
         }
     }
 
@@ -225,36 +254,38 @@ $(document).ready(function(){
         var ctx=canvas.getContext("2d");
         ctx.save();
         
-		calcHoverColors();
-        
-		if(xRangeLeft >= 0 && xRangeRight >= 0 && xRangeRight >= xRangeLeft){
-			xRangeRight = Math.min(xRangeRight, canvas.width);
-			ctx.strokeStyle = "#00FF00";
-			ctx.fillStyle = "#00FF00";
-			ctx.globalAlpha = 0.2;
-			ctx.fillRect(xRangeLeft, 0, xRangeRight - xRangeLeft, canvas.height);
-			ctx.globalAlpha = 1.0;
-            ctx.beginPath();
-			ctx.moveTo(xRangeLeft,0);
-			ctx.lineTo(xRangeLeft,canvas.height);
-			ctx.moveTo(xRangeRight,0);
-			ctx.lineTo(xRangeRight,canvas.height);
-			ctx.stroke();
-		}
-        
-        if(yRangeTop >= 0 && yRangeBottom >= 0 && yRangeBottom >= yRangeTop){
-           yRangeBottom = Math.min(yRangeBottom, canvas.height);
-			ctx.strokeStyle = "#00FF00";
-			ctx.fillStyle = "#00FF00";
-			ctx.globalAlpha = 0.2;
-			ctx.fillRect(0, yRangeTop, canvas.width, yRangeBottom - yRangeTop);
-			ctx.globalAlpha = 1.0;
-            ctx.beginPath();
-			ctx.moveTo(0,yRangeTop);
-			ctx.lineTo(canvas.width,yRangeTop);
-			ctx.moveTo(0,yRangeBottom);
-			ctx.lineTo(canvas.height,yRangeBottom);
-			ctx.stroke();
+        if(mode == 0){
+            calcHoverColors();
+            
+            if(xRangeLeft >= 0 && xRangeRight >= 0 && xRangeRight >= xRangeLeft){
+                xRangeRight = Math.min(xRangeRight, canvas.width);
+                ctx.strokeStyle = "#00FF00";
+                ctx.fillStyle = "#00FF00";
+                ctx.globalAlpha = 0.2;
+                ctx.fillRect(xRangeLeft, 0, xRangeRight - xRangeLeft, canvas.height);
+                ctx.globalAlpha = 1.0;
+                ctx.beginPath();
+                ctx.moveTo(xRangeLeft,0);
+                ctx.lineTo(xRangeLeft,canvas.height);
+                ctx.moveTo(xRangeRight,0);
+                ctx.lineTo(xRangeRight,canvas.height);
+                ctx.stroke();
+            }
+            
+            if(yRangeTop >= 0 && yRangeBottom >= 0 && yRangeBottom >= yRangeTop){
+               yRangeBottom = Math.min(yRangeBottom, canvas.height);
+                ctx.strokeStyle = "#00FF00";
+                ctx.fillStyle = "#00FF00";
+                ctx.globalAlpha = 0.2;
+                ctx.fillRect(0, yRangeTop, canvas.width, yRangeBottom - yRangeTop);
+                ctx.globalAlpha = 1.0;
+                ctx.beginPath();
+                ctx.moveTo(0,yRangeTop);
+                ctx.lineTo(canvas.width,yRangeTop);
+                ctx.moveTo(0,yRangeBottom);
+                ctx.lineTo(canvas.height,yRangeBottom);
+                ctx.stroke();
+            }
         }
 		
         if(selectRect != null){
@@ -275,34 +306,36 @@ $(document).ready(function(){
             ctx.strokeStyle = "#000000";
             
             //draw out range sections
-            for(var i = 0; i < xTree.length; i++){
-                if(xTree[i].inRange && (xTree[i].parent < 0 || !xTree[xTree[i].parent].inRange)){
-                    ctx.beginPath();
-                    ctx.strokeStyle = "#0000FF";
-                    ctx.globalAlpha = 0.4;
-                    ctx.moveTo(xTree[i].min, y);
-                    ctx.lineTo(xTree[i].min, y2);
-                    if(xTree[i].max != xTree[i].min){
-                        ctx.moveTo(xTree[i].max, y);
-                        ctx.lineTo(xTree[i].max, y2);
-                    }
-                    ctx.stroke();
-                    ctx.globalAlpha = 1.0;
-                
-                    for(var j = 0; j < yTreeList[i].tree.length; j++){
-                        if(yTreeList[i].tree[j].inRange && (yTreeList[i].tree[j].parent < 0 || !yTreeList[i].tree[yTreeList[i].tree[j].parent].inRange)){
-                            ctx.beginPath();
-                            ctx.strokeStyle = "#0000FF";
-                            ctx.globalAlpha = 0.4;
-                            ctx.moveTo(xTree[i].min, yTreeList[i].tree[j].min);
-                            ctx.lineTo(xTree[i].max, yTreeList[i].tree[j].min);
-                            if(yTreeList[i].tree[j].max != yTreeList[i].tree[j].min){
-                                ctx.moveTo(xTree[i].min, yTreeList[i].tree[j].max);
-                                ctx.lineTo(xTree[i].max, yTreeList[i].tree[j].max);
+            if(mode == 0){
+                for(var i = 0; i < xTree.length; i++){
+                    if(xTree[i].inRange && (xTree[i].parent < 0 || !xTree[xTree[i].parent].inRange)){
+                        ctx.beginPath();
+                        ctx.strokeStyle = "#0000FF";
+                        ctx.globalAlpha = 0.4;
+                        ctx.moveTo(xTree[i].min, y);
+                        ctx.lineTo(xTree[i].min, y2);
+                        if(xTree[i].max != xTree[i].min){
+                            ctx.moveTo(xTree[i].max, y);
+                            ctx.lineTo(xTree[i].max, y2);
+                        }
+                        ctx.stroke();
+                        ctx.globalAlpha = 1.0;
+                    
+                        for(var j = 0; j < yTreeList[i].tree.length; j++){
+                            if(yTreeList[i].tree[j].inRange && (yTreeList[i].tree[j].parent < 0 || !yTreeList[i].tree[yTreeList[i].tree[j].parent].inRange)){
+                                ctx.beginPath();
+                                ctx.strokeStyle = "#0000FF";
+                                ctx.globalAlpha = 0.4;
+                                ctx.moveTo(xTree[i].min, yTreeList[i].tree[j].min);
+                                ctx.lineTo(xTree[i].max, yTreeList[i].tree[j].min);
+                                if(yTreeList[i].tree[j].max != yTreeList[i].tree[j].min){
+                                    ctx.moveTo(xTree[i].min, yTreeList[i].tree[j].max);
+                                    ctx.lineTo(xTree[i].max, yTreeList[i].tree[j].max);
+                                }
+                                ctx.stroke();
+                                ctx.globalAlpha = 1.0;
+                                
                             }
-                            ctx.stroke();
-                            ctx.globalAlpha = 1.0;
-                            
                         }
                     }
                 }
@@ -319,8 +352,10 @@ $(document).ready(function(){
             }
         }
 		
-		drawXTree();
-		drawYTree();
+        if(mode == 0){
+            drawXTree();
+            drawYTree();
+        }
         
         ctx.restore();
     }
@@ -679,7 +714,7 @@ $(document).ready(function(){
 		yCtx.restore();
 	}
     
-    function constructTrees(){
+    function constructRangeTrees(){
         constructXTree();
         
         yTreeList = new Array();

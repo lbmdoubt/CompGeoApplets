@@ -44,28 +44,57 @@
                         </canvas>
                     </td>
                     <td>
-                        <table>
-                            <tr>
-                                <td>
-                                    <canvas id="xTreeCanvas" class="canvas">
-                                        Your browser does not support the HTML5 canvas tag.
-                                    </canvas>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <canvas id="yTreeCanvas" class="canvas">
-                                        Your browser does not support the HTML5 canvas tag.
-                                    </canvas>
-                                </td>
-                            </tr>
-                        </table>
+                        <div class="rangeQuery">
+                            <table>
+                                <tr>
+                                    <td>
+                                        <div>x range tree</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <canvas id="xTreeCanvas" class="canvas">
+                                            Your browser does not support the HTML5 canvas tag.
+                                        </canvas>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div>y range tree</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <canvas id="yTreeCanvas" class="canvas">
+                                            Your browser does not support the HTML5 canvas tag.
+                                        </canvas>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="kdTree">
+                            <canvas id="kdTreeCanvas" class="canvas">
+                                Your browser does not support the HTML5 canvas tag.
+                            </canvas>
+                        </div>
                     </td>
                 </tr>
 				<tr>
-					<td>
-						<button id="rangeQueryClear" type="button">Clear</button>
-					</td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>
+                                    <button id="rangeQueryClear" type="button">Clear</button>
+                                </td>
+                                <td>
+                                    <input id="rangeTree" name="treeType" type="radio" checked="true">Orthogonal Range Tree</button>
+                                </td>
+                                <td>
+                                    <input id="kdTree" name="treeType" type="radio">kdTree</button>
+                                </td>
+                            <tr>
+                        </table>
+                    </td>
 				</tr>
             </table>
         </div>
