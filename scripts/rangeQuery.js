@@ -51,6 +51,7 @@ $(document).ready(function(){
     var redCirc10px = document.getElementById("circ_red_10px");
     var whiteCirc10px = document.getElementById("circ_white_10px");
     var blueCirc10px = document.getElementById("circ_blue_10px");
+    var greenCirc10px = document.getElementById("circ_green_10px");
     
     var mode = 0; //0:Orthogonal Range Tree, 1: kdTree
     
@@ -473,41 +474,25 @@ $(document).ready(function(){
                         yTree[j].color = "#222222";
                     }
                     
-                    if(xTree[i].isLeaf){
-                        xTree[i].color = "#FF0000";
-                    } else {
-                        xTree[i].color = "#00FF00";
-                    }
+                    xTree[i].color = "#00FF00";
 					if(!xTree[i].isLeaf){
-                        if(xTree[xTree[i].leftChild].isLeaf){
-                            xTree[xTree[i].leftChild].color = "#FF0000";
-                        } else {
-                            xTree[xTree[i].leftChild].color = xTree[i].color;
-                        }
-                        if(xTree[xTree[i].rightChild].isLeaf){
-                            xTree[xTree[i].rightChild].color = "#FF0000";
-                        } else {
-                            xTree[xTree[i].rightChild].color = xTree[i].color;
-                        }
+                        xTree[xTree[i].leftChild].color = xTree[i].color;
+                        xTree[xTree[i].rightChild].color = xTree[i].color;
                         xRangeLeft = xTree[i].min;
                         xRangeRight = xTree[i].max;
 					} else {
-                        points[xTree[i].refPoint].color = xTree[i].color;
+                        points[xTree[i].refPoint].color = "#FF0000";
 					}
 				} else {
 					if(!xTree[i].isLeaf){
-                        if(xTree[xTree[i].leftChild].isLeaf && xTree[i].color == "#00FF00"){
-                            xTree[xTree[i].leftChild].color = "#FF0000";
-                        } else {
-                            xTree[xTree[i].leftChild].color = xTree[i].color;
-                        }
-                        if(xTree[xTree[i].rightChild].isLeaf && xTree[i].color == "#00FF00"){
-                            xTree[xTree[i].rightChild].color = "#FF0000";
-                        } else {
-                            xTree[xTree[i].rightChild].color = xTree[i].color;
-                        }
+                        xTree[xTree[i].leftChild].color = xTree[i].color;
+                        xTree[xTree[i].rightChild].color = xTree[i].color;
 					} else {
-						points[xTree[i].refPoint].color = xTree[i].color;
+                        if(xTree[i].color == "#00FF00"){
+                            points[xTree[i].refPoint].color = "#FF0000";
+                        } else {
+                            points[xTree[i].refPoint].color = xTree[i].color;
+                        }
 					}
 				}
 			}
@@ -526,41 +511,25 @@ $(document).ready(function(){
 				} else if((yCanvasPos != null && Math.abs(yTree[i].x - yCanvasPos.x + yCanvasXOffset) < 6 && Math.abs(yTree[i].y - yCanvasPos.y + yCanvasYOffset) < 6 && selectedYNodeIndex < 0) || selectedYNodeIndex == i){
                     isHoveringOverNode = true;
                     
-                    if(yTree[i].isLeaf){
-                        yTree[i].color = "#FF0000";
-                    } else {
-                        yTree[i].color = "#00FF00";
-                    }
+                    yTree[i].color = "#00FF00";
 					if(!yTree[i].isLeaf){
-                        if(yTree[yTree[i].leftChild].isLeaf){
-                            yTree[yTree[i].leftChild].color = "#FF0000";
-                        } else {
-                            yTree[yTree[i].leftChild].color = yTree[i].color;
-                        }
-                        if(yTree[yTree[i].rightChild].isLeaf){
-                            yTree[yTree[i].rightChild].color = "#FF0000";
-                        } else {
-                            yTree[yTree[i].rightChild].color = yTree[i].color;
-                        }
+                        yTree[yTree[i].leftChild].color = yTree[i].color;
+                        yTree[yTree[i].rightChild].color = yTree[i].color;
                         yRangeTop = yTree[i].min;
                         yRangeBottom = yTree[i].max;
 					} else {
-                        yTreePoints[yTree[i].refPoint].color = yTree[i].color;
+                        yTreePoints[yTree[i].refPoint].color = "#FF0000";
 					}
 				} else {
 					if(!yTree[i].isLeaf){
-                        if(yTree[yTree[i].leftChild].isLeaf && yTree[i].color == "#00FF00"){
-                            yTree[yTree[i].leftChild].color = "#FF0000";
-                        } else {
-                            yTree[yTree[i].leftChild].color = yTree[i].color;
-                        }
-                        if(yTree[yTree[i].rightChild].isLeaf && yTree[i].color == "#00FF00"){
-                            yTree[yTree[i].rightChild].color = "#FF0000";
-                        } else {
-                            yTree[yTree[i].rightChild].color = yTree[i].color;
-                        }
+                        yTree[yTree[i].leftChild].color = yTree[i].color;
+                        yTree[yTree[i].rightChild].color = yTree[i].color;
 					} else {
-						yTreePoints[yTree[i].refPoint].color = yTree[i].color;
+                        if(yTree[i].color == "#00FF00"){
+                           yTreePoints[yTree[i].refPoint].color = "#FF0000";
+                        } else {
+                            yTreePoints[yTree[i].refPoint].color = yTree[i].color;
+                        }
 					}
 				}
             }
@@ -658,6 +627,8 @@ $(document).ready(function(){
                     xCtx.drawImage(redCirc10px, xTree[i].x - 5 + xCanvasXOffset, xTree[i].y - 5 + xCanvasYOffset);
                 } else if(xTree[i].color == "#0000FF"){
                     xCtx.drawImage(blueCirc10px, xTree[i].x - 5 + xCanvasXOffset, xTree[i].y - 5 + xCanvasYOffset);
+                } else if(xTree[i].color == "#00FF00"){
+                    xCtx.drawImage(greenCirc10px, xTree[i].x - 5 + xCanvasXOffset, xTree[i].y - 5 + xCanvasYOffset);
                 } else {
                     xCtx.arc(xTree[i].x + xCanvasXOffset,xTree[i].y + xCanvasYOffset,5,0,2*Math.PI);
                 }
@@ -731,6 +702,8 @@ $(document).ready(function(){
                     yCtx.drawImage(redCirc10px, yTree[i].x - 5 + yCanvasXOffset, yTree[i].y - 5 + yCanvasYOffset);
                 } else if(yTree[i].color == "#0000FF"){
                     yCtx.drawImage(blueCirc10px, yTree[i].x - 5 + yCanvasXOffset, yTree[i].y - 5 + yCanvasYOffset);
+                } else if(yTree[i].color == "#00FF00"){
+                    yCtx.drawImage(greenCirc10px, yTree[i].x - 5 + yCanvasXOffset, yTree[i].y - 5 + yCanvasYOffset);
                 } else {
                     yCtx.arc(yTree[i].x + yCanvasXOffset,yTree[i].y + yCanvasYOffset,5,0,2*Math.PI);
                 }
