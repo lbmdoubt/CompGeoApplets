@@ -131,7 +131,6 @@ $(document).ready(function(){
     }
 
     function mouseDown(){
-        console.log(selectRect);
         isMouseDown = true;
         startTime = new Date().getTime();
         selectedPointIndex = -1;
@@ -145,7 +144,6 @@ $(document).ready(function(){
                 selectRectStart = canvasPos;
 			}
 		}
-        console.log(selectRect);
     }
 
     function mouseUp(){
@@ -376,6 +374,7 @@ $(document).ready(function(){
                         } else {
                             xTree[xTree[i].rightChild].color = xTree[i].color;
                         }
+                        /*
 						var leftDesc = xTree[i], rightDesc = xTree[i];
 						while(!leftDesc.isLeaf){
 							leftDesc = xTree[leftDesc.leftChild];
@@ -389,6 +388,9 @@ $(document).ready(function(){
                         } else {
                             xRangeRight = Math.max(points[rightDesc.refPoint + 1].x - 1, points[rightDesc.refPoint].x);
                         }
+                        */
+                        xRangeLeft = xTree[i].min;
+                        xRangeRight = xTree[i].max;
 					} else {
                         points[xTree[i].refPoint].color = xTree[i].color;
 					}
@@ -440,19 +442,8 @@ $(document).ready(function(){
                         } else {
                             yTree[yTree[i].rightChild].color = yTree[i].color;
                         }
-						var leftDesc = yTree[i], rightDesc = yTree[i];
-						while(!leftDesc.isLeaf){
-							leftDesc = yTree[leftDesc.leftChild];
-						}
-						while(!rightDesc.isLeaf){
-							rightDesc = yTree[rightDesc.rightChild];
-						}
-						yRangeTop = yTreePoints[leftDesc.refPoint].y;
-                        if(rightDesc.refPoint >= yTreePoints.length - 1){
-                            yRangeBottom = yTreePoints[rightDesc.refPoint].y;
-                        } else {
-                            yRangeBottom = Math.max(yTreePoints[rightDesc.refPoint + 1].y - 1, yTreePoints[rightDesc.refPoint].y);
-                        }
+                        yRangeTop = yTree[i].min;
+                        yRangeBottom = yTree[i].max;
 					} else {
                         yTreePoints[yTree[i].refPoint].color = yTree[i].color;
 					}
@@ -654,8 +645,8 @@ $(document).ready(function(){
 			{
 				xTree[i].rightChild = i + xTree[i].rightChild;
 				xTree[i].leftChild = i + xTree[i].leftChild;
-				xTree[i].parent = i + xTree[i].parent;
 			}
+			xTree[i].parent = i + xTree[i].parent;
 		}
 		
 		width = xCanvas.width;
@@ -681,6 +672,37 @@ $(document).ready(function(){
 		}
         xCanvasXOffset = Math.max(Math.min(xCanvasXOffset, xCanvasXOffsetMax), xCanvasXOffsetMin);
         xCanvasYOffset = Math.max(Math.min(xCanvasYOffset, xCanvasYOffsetMax), xCanvasYOffsetMin);
+        
+        //calculate the range of each node
+        for(var i = xTree.length - 1; i >= 0; i--){
+            var minVal, maxVal;
+            if(xTree[i].isLeaf){
+                if(xTree[i].refPoint + 1 >= points.length){
+                    minVal = points[xTree[i].refPoint].x;
+                    maxVal = points[xTree[i].refPoint].x;
+                } else {
+                    minVal = points[xTree[i].refPoint].x;
+                    maxVal = points[xTree[i].refPoint + 1].x - 1;
+                }
+                xTree[i].min = minVal;
+                xTree[i].max = maxVal;
+            } else {
+                minVal = xTree[i].min;
+                maxVal = xTree[i].max;
+            }
+            if(i > 0){
+                if(xTree[xTree[i].parent].min < 0){
+                    xTree[xTree[i].parent].min = minVal;
+                } else {
+                    xTree[xTree[i].parent].min = Math.min(xTree[xTree[i].parent].min, minVal);
+                }
+                if(xTree[xTree[i].parent].max < 0){
+                    xTree[xTree[i].parent].max = maxVal;
+                } else {
+                    xTree[xTree[i].parent].max = Math.max(xTree[xTree[i].parent].max, maxVal);
+                }
+            }
+        }
 	}
 	
 	function constructYTreeFromNode(xRootNode){
@@ -728,8 +750,8 @@ $(document).ready(function(){
 			{
 				tree[i].rightChild = i + tree[i].rightChild;
 				tree[i].leftChild = i + tree[i].leftChild;
-				tree[i].parent = i + tree[i].parent;
 			}
+			tree[i].parent = i + tree[i].parent;
 		}
 		width = yCanvas.width;
 		tree[0].x = width / 2;
@@ -747,6 +769,38 @@ $(document).ready(function(){
                 tree[tree[i].rightChild].x = tree[i].x + xChange * 10;
             }
 		}
+        
+        //calculate the range of each node
+        for(var i = tree.length - 1; i >= 0; i--){
+            var minVal, maxVal;
+            if(tree[i].isLeaf){
+                if(tree[i].refPoint + 1 >= pointList.length){
+                    minVal = pointList[tree[i].refPoint].y;
+                    maxVal = pointList[tree[i].refPoint].y;
+                } else {
+                    minVal = pointList[tree[i].refPoint].y;
+                    maxVal = pointList[tree[i].refPoint + 1].y - 1;
+                }
+                tree[i].min = minVal;
+                tree[i].max = maxVal;
+            } else {
+                minVal = tree[i].min;
+                maxVal = tree[i].max;
+            }
+            if(i > 0){
+                if(tree[tree[i].parent].min < 0){
+                    tree[tree[i].parent].min = minVal;
+                } else {
+                    tree[tree[i].parent].min = Math.min(tree[tree[i].parent].min, minVal);
+                }
+                if(tree[tree[i].parent].max < 0){
+                    tree[tree[i].parent].max = maxVal;
+                } else {
+                    tree[tree[i].parent].max = Math.max(tree[tree[i].parent].max, maxVal);
+                }
+            }
+        }
+        
         return tree;
 	}
 	
@@ -754,17 +808,17 @@ $(document).ready(function(){
 	{
 		var size=endIndex - startIndex;
 		if(size == 1){
-			return [{parent:-1, isLeaf:true, leftChild:-1, rightChild:-1, refPoint:startIndex, x:-1, y:-1}];
+			return [{parent:-1, isLeaf:true, leftChild:-1, rightChild:-1, max:-1, min:-1, refPoint:startIndex, x:-1, y:-1}];
 		}
 		var split = startIndex + Math.ceil(size / 2);
-		var rootNode={parent:-1, isLeaf:false, leftChild:1, rightChild:-1, refPoint:-1, x:-1, y:-1};
+		var rootNode={parent:-1, isLeaf:false, leftChild:1, rightChild:-1, max:-1, min:-1, refPoint:-1, x:-1, y:-1};
 		var tree = new Array();
 		tree.push(rootNode);
 		var leftSubtree = constructTreeSub(sortedPoints, startIndex, split);
-		leftSubtree.parent = -1;
+		leftSubtree[0].parent = -1;
 		rootNode.rightChild = leftSubtree.length + 1;
 		var rightSubtree = constructTreeSub(sortedPoints, split, endIndex);
-		rightSubtree.parent = -1 * (rootNode.rightChild);
+		rightSubtree[0].parent = -1 * (rootNode.rightChild);
 		tree.push.apply(tree, leftSubtree);
 		tree.push.apply(tree, rightSubtree);
 		return tree;
