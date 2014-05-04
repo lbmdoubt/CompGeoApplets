@@ -2,7 +2,7 @@ $(document).ready(function(){
     var canvasPos, xCanvasPos, yCanvasPos;
     var xCanvasPosPre, yCanvasPosPre;
     var points = new Array();
-    var canvas, xCanvas, yCanvas;
+    var canvas, xCanvas, yCanvas, kdCanvas;
     var startTime = -1;
     var selectedPointIndex = -1;
     var selectedPointYTreeIndex = -1;
@@ -36,6 +36,12 @@ $(document).ready(function(){
     var yCanvasYOffsetMax = 0;
     var yCanvasXOffsetMin = 0;
     var yCanvasYOffsetMin = 0;
+    var xCanvasWidth;
+    var xCanvasHeight;
+    var yCanvasWidth;
+    var yCanvasHeight;
+    var kdCanvasWidth;
+    var kdCanvasHeight;
     
     //get images to draw
     var redRect10px = document.getElementById("rect_red_10px");
@@ -55,13 +61,46 @@ $(document).ready(function(){
     canvas = document.getElementById('rangeQueryCanvas');
     xCanvas = document.getElementById('xTreeCanvas');
     yCanvas = document.getElementById('yTreeCanvas');
+    kdCanvas = document.getElementById('kdTreeCanvas');
 	var clearButton = document.getElementById('rangeQueryClear');
+    
+    xCanvasWidth = xCanvas.width;
+    xCanvasHeight = xCanvas.height;
+    yCanvasWidth = yCanvas.width;
+    yCanvasHeight = yCanvas.height;
+    kdCanvasWidth = kdCanvas.width;
+    kdCanvasHeight = kdCanvas.height;
+    
+    $( ".kdTree" ).css( "display", "none" );
+    
 	clearButton.onclick=function(){
         xCanvasXOffset = 0;
         xCanvasYOffset = 0;
         selectedXNodeIndex = -1;
         clearRangeQueryCanvas();
     };
+    if(kdTreeButton != null){
+        kdTreeButton.onclick=function(){
+            if(kdTreeButton.checked){
+                mode = 1;
+                $( ".rangeQuery" ).css( "display", "none" );
+                $( ".kdTree" ).css( "display", "block" );
+                redraw();
+            }
+        }
+    }
+    if(rangeTreeButton != null){
+        rangeTreeButton.onclick=function(){
+            if(rangeTreeButton.checked){
+                mode = 0;
+                $( ".rangeQuery" ).css( "display", "block" );
+                $( ".kdTree" ).css( "display", "none" );
+                
+                constructRangeTrees();
+                redraw();
+            }
+        }
+    }
     canvas.addEventListener('mousedown', function(){ mouseDown()}, false);
     canvas.addEventListener('mouseup', function(){ mouseUp()}, false);
     canvas.addEventListener('mousemove', function(e) {
@@ -388,9 +427,9 @@ $(document).ready(function(){
         var ctx=canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 		ctx=xCanvas.getContext("2d");
-        ctx.clearRect(0, 0, xCanvas.width, xCanvas.height);
+        ctx.clearRect(0, 0, xCanvasWidth, xCanvasHeight);
 		ctx=yCanvas.getContext("2d");
-        ctx.clearRect(0, 0, yCanvas.width, yCanvas.height);
+        ctx.clearRect(0, 0, yCanvasWidth, yCanvasHeight);
     }
 	
 	function calcHoverColors(){
@@ -759,7 +798,8 @@ $(document).ready(function(){
 			xTree[i].parent = i + xTree[i].parent;
 		}
 		
-		width = xCanvas.width;
+		width = xCanvasWidth;
+        console.log(width);
 		
 		xTree[0].x = width / 2;
 		xTree[0].y = 25;
@@ -858,7 +898,7 @@ $(document).ready(function(){
 			}
 			tree[i].parent = i + tree[i].parent;
 		}
-		width = yCanvas.width;
+		width = yCanvasWidth;
 		tree[0].x = width / 2;
 		tree[0].y = 25;
 		for(var i=0; i < tree.length; i++){
