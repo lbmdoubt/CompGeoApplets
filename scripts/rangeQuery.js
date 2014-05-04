@@ -674,10 +674,14 @@ $(document).ready(function(){
         var endTime = new Date().getTime();
         if(startTime < 0 || endTime - startTime < 200){
             selectedXNodeIndex = -1;
+            yCanvasXOffset = 0;
+            yCanvasYOffset = 0;
         }
         for(var i = 0; i < xTree.length; i++){
             if(Math.abs(xTree[i].x - xCanvasPos.x + xCanvasXOffset) < 6 && Math.abs(xTree[i].y - xCanvasPos.y + xCanvasYOffset) < 6){
                 selectedXNodeIndex = i;
+                yCanvasXOffset = 0;
+                yCanvasYOffset = 0;
             }
         }
     }
@@ -790,7 +794,6 @@ $(document).ready(function(){
 		}
 		
 		width = xCanvasWidth;
-        console.log(width);
 		
 		xTree[0].x = width / 2;
 		xTree[0].y = 25;
