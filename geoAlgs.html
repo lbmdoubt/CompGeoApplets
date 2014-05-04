@@ -4,6 +4,7 @@
     <script src="scripts/controller.js"></script>
     <script src="scripts/voronoi.js"></script>
     <script src="scripts/rangeQuery.js"></script>
+    <script type="text/javascript" src="scripts/primaldual.js"></script>
     <link rel="stylesheet" type="text/css" href="css/canvas.css">
     <link rel="stylesheet" type="text/css" href="css/tabs.css">
     <link rel="stylesheet" type="text/css" href="css/images.css">
@@ -12,7 +13,7 @@
 
     <ul class="tabs">
       <li><a href="#first">Voronoi/Delaunay</a></li>
-      <li><a href="#second">Dual</a></li>
+      <li><a href="#second">Duality</a></li>
       <li><a href="#third">Range Query</a></li>
     </ul>
 
@@ -34,6 +35,25 @@
 			</table>
         </div>
         <div>
+        	<table>
+				<tr>
+					<td>
+						<canvas id="primal" class="canvas">
+							Your browser does not support HTML5
+						</canvas>
+					</td>
+					<td>
+						<canvas id="dual" class="canvas">
+							Your browser does not support HTML5
+						</canvas>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<button id='clearButton' type="button">Clear</button>
+					</td>
+				</tr>
+			</table>
         </div>
         <div>
             <table>
